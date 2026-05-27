@@ -6,421 +6,216 @@
   <title>Coletivo de Lideranças</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --primary:      #1e3a5f;
-      --accent:       #2d7dd2;
-      --success:      #2a9d6e;
-      --warning:      #e9a31a;
-      --danger:       #d63b3b;
-      --bg:           #f0f3f8;
-      --card:         #ffffff;
-      --text:         #1a1f2e;
-      --muted:        #6b7280;
-      --border:       #e2e6ed;
-      --radius:       10px;
-      --shadow:       0 1px 4px rgba(0,0,0,0.07), 0 4px 14px rgba(0,0,0,0.05);
+      --pri:    #1e3a5f;
+      --acc:    #2d7dd2;
+      --ok:     #2a9d6e;
+      --warn:   #e9a31a;
+      --err:    #d63b3b;
+      --bg:     #f0f3f8;
+      --card:   #ffffff;
+      --txt:    #1a1f2e;
+      --muted:  #6b7280;
+      --bdr:    #e2e6ed;
+      --rad:    10px;
+      --shad:   0 1px 4px rgba(0,0,0,0.07), 0 4px 14px rgba(0,0,0,0.05);
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--txt); min-height: 100vh; font-size: 14px; line-height: 1.5; }
 
     /* ── HEADER ── */
-    header {
-      background: var(--primary);
-      color: #fff;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
-    }
-    header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.2px; }
-    .hdr-actions { display: flex; gap: 8px; }
-    .hdr-btn {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .hdr-btn:hover { background: rgba(255,255,255,0.2); }
+    header { background: var(--pri); color:#fff; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.25); }
+    header h1 { font-size:16px; font-weight:800; }
+    .hdr-actions { display:flex; gap:8px; }
+    .hdr-btn { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s; }
+    .hdr-btn:hover { background:rgba(255,255,255,0.22); }
 
     /* ── NAV ── */
-    nav {
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      padding: 0 16px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    nav::-webkit-scrollbar { display: none; }
-    .nav-btn {
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 13px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .nav-btn:hover { color: var(--text); }
-    .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    nav { background:var(--card); border-bottom:1px solid var(--bdr); display:flex; padding:0 16px; overflow-x:auto; scrollbar-width:none; }
+    nav::-webkit-scrollbar { display:none; }
+    .nav-btn { background:none; border:none; border-bottom:2px solid transparent; padding:13px 18px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; white-space:nowrap; transition:color .15s, border-color .15s; }
+    .nav-btn:hover { color:var(--txt); }
+    .nav-btn.active { color:var(--acc); border-bottom-color:var(--acc); }
 
     /* ── MAIN ── */
-    main { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+    main { max-width:980px; margin:0 auto; padding:24px 16px 60px; }
 
     /* ── CARD ── */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 14px;
-    }
-    .card-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .card-title { font-size: 15px; font-weight: 700; }
+    .card { background:var(--card); border-radius:var(--rad); box-shadow:var(--shad); padding:20px; margin-bottom:14px; }
+    .card-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .card-title { font-size:15px; font-weight:700; }
 
     /* ── METRICS ── */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    @media (max-width: 600px) { .metrics { grid-template-columns: 1fr 1fr; } }
-    .metric {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      border-top: 3px solid var(--accent);
-    }
-    .metric.s { border-top-color: var(--success); }
-    .metric.w { border-top-color: var(--warning); }
-    .metric.d { border-top-color: var(--danger);  }
-    .metric-n { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-    .metric-l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }
+    @media(max-width:600px) { .metrics { grid-template-columns:1fr 1fr; } }
+    .metric { background:var(--card); border-radius:var(--rad); padding:16px; box-shadow:var(--shad); border-top:3px solid var(--acc); }
+    .metric.s { border-top-color:var(--ok); }
+    .metric.w { border-top-color:var(--warn); }
+    .metric.d { border-top-color:var(--err); }
+    .metric-n { font-size:28px; font-weight:800; line-height:1; margin-bottom:4px; }
+    .metric-l { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
 
     /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 8px 15px;
-      border-radius: 7px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      white-space: nowrap;
-      transition: filter 0.14s;
-    }
-    .btn:hover { filter: brightness(0.9); }
-    .btn-p  { background: var(--accent);   color: #fff; }
-    .btn-d  { background: var(--danger);   color: #fff; }
-    .btn-o  { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-o:hover { background: var(--bg); filter: none; }
-    .btn-sm { padding: 5px 11px; font-size: 12px; }
-    .btn-xs { padding: 3px 8px;  font-size: 11px; border-radius: 5px; }
-    .ico-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 5px 6px;
-      border-radius: 5px;
-      color: var(--muted);
-      font-size: 14px;
-      transition: background 0.12s, color 0.12s;
-      line-height: 1;
-    }
-    .ico-btn:hover { background: var(--bg); color: var(--text); }
+    .btn { display:inline-flex; align-items:center; gap:5px; padding:8px 15px; border-radius:7px; font-size:13px; font-weight:700; cursor:pointer; border:none; white-space:nowrap; transition:filter .14s; }
+    .btn:hover { filter:brightness(.9); }
+    .btn-p { background:var(--acc); color:#fff; }
+    .btn-d { background:var(--err); color:#fff; }
+    .btn-o { background:transparent; border:1px solid var(--bdr); color:var(--txt); }
+    .btn-o:hover { background:var(--bg); filter:none; }
+    .btn-sm { padding:5px 11px; font-size:12px; }
+    .btn-xs { padding:3px 8px; font-size:11px; border-radius:5px; }
+    .ico-btn { background:none; border:none; cursor:pointer; padding:5px 6px; border-radius:5px; color:var(--muted); font-size:14px; transition:background .12s, color .12s; line-height:1; }
+    .ico-btn:hover { background:var(--bg); color:var(--txt); }
 
     /* ── FORM ── */
-    .fg { margin-bottom: 13px; }
-    .fl {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-    }
-    .fc {
-      width: 100%;
-      padding: 9px 11px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text);
-      background: #fff;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .fc:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,125,210,0.12); }
-    textarea.fc { resize: vertical; min-height: 76px; }
-    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
-    @media (max-width: 480px) { .frow { grid-template-columns: 1fr; } }
+    .fg { margin-bottom:13px; }
+    .fl { display:block; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+    .fc { width:100%; padding:9px 11px; border:1px solid var(--bdr); border-radius:6px; font-size:13px; font-family:inherit; color:var(--txt); background:#fff; transition:border-color .15s, box-shadow .15s; }
+    .fc:focus { outline:none; border-color:var(--acc); box-shadow:0 0 0 3px rgba(45,125,210,.12); }
+    textarea.fc { resize:vertical; min-height:76px; }
+    .frow { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    @media(max-width:480px) { .frow { grid-template-columns:1fr; } }
+
+    /* ── CHECKBOX LIST ── */
+    .chk-list { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; border:1px solid var(--bdr); border-radius:6px; padding:10px 12px; background:#fff; }
+    .chk-item { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; }
+    .chk-item input[type=checkbox] { width:15px; height:15px; accent-color:var(--acc); cursor:pointer; }
+    .chk-sub { font-size:11px; color:var(--muted); margin-left:23px; }
 
     /* ── BADGES ── */
-    .badge {
-      display: inline-block;
-      padding: 2px 9px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    .b-pend { background: #fff3cd; color: #7a5900; }
-    .b-and  { background: #d0e8ff; color: #004da1; }
-    .b-ok   { background: #d1f0e0; color: #155a35; }
-    .b-can  { background: #e9ecef; color: #495057; }
-    .b-late { background: #ffe0e0; color: #8b1414; }
-    .b-ativ { background: #d1f0e0; color: #155a35; }
-    .b-inat { background: #e9ecef; color: #495057; }
+    .badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+    .b-pend { background:#fff3cd; color:#7a5900; }
+    .b-and  { background:#d0e8ff; color:#004da1; }
+    .b-ok   { background:#d1f0e0; color:#155a35; }
+    .b-can  { background:#e9ecef; color:#495057; }
+    .b-late { background:#ffe0e0; color:#8b1414; }
+    .b-ativ { background:#d1f0e0; color:#155a35; }
+    .b-inat { background:#e9ecef; color:#495057; }
 
     /* ── LIST ITEM ── */
-    .li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .li:last-child  { border-bottom: none; padding-bottom: 0; }
-    .li:first-child { padding-top: 0; }
-    .li-body { flex: 1; min-width: 0; }
-    .li-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 3px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .li-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .li { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--bdr); }
+    .li:last-child  { border-bottom:none; padding-bottom:0; }
+    .li:first-child { padding-top:0; }
+    .li-body { flex:1; min-width:0; }
+    .li-title { font-size:14px; font-weight:600; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .li-meta  { font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
     /* ── PAGE HEADER ── */
-    .ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .pt { font-size: 20px; font-weight: 800; color: var(--primary); }
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 13px;
-      cursor: pointer;
-      margin-bottom: 12px;
-      padding: 0;
-    }
-    .back-btn:hover { color: var(--text); }
+    .ph { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+    .pt { font-size:20px; font-weight:800; color:var(--pri); }
+    .back-btn { display:inline-flex; align-items:center; gap:5px; background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; margin-bottom:12px; padding:0; }
+    .back-btn:hover { color:var(--txt); }
 
     /* ── EMPTY ── */
-    .empty { text-align: center; padding: 36px 20px; color: var(--muted); }
-    .empty-ico { font-size: 36px; margin-bottom: 8px; }
-    .empty h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+    .empty { text-align:center; padding:36px 20px; color:var(--muted); }
+    .empty-ico { font-size:36px; margin-bottom:8px; }
+    .empty h3 { font-size:15px; font-weight:700; color:var(--txt); margin-bottom:5px; }
 
     /* ── PROGRESS ── */
-    .prog-wrap { margin-bottom: 10px; }
-    .prog-lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-    .prog-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .prog-fill { height: 100%; background: var(--success); border-radius: 3px; transition: width 0.4s; }
-
-    /* ── MATERIAIS ── */
-    .mat-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-    .mat-item {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      background: var(--bg);
-      border-radius: 7px;
-      padding: 8px 10px;
-    }
-    .mat-ico { font-size: 16px; flex-shrink: 0; }
-    .mat-body { flex: 1; min-width: 0; }
-    .mat-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .mat-name a { color: var(--accent); text-decoration: none; }
-    .mat-name a:hover { text-decoration: underline; }
-    .mat-sub { font-size: 11px; color: var(--muted); }
-    .no-mat { font-size: 12px; color: var(--muted); font-style: italic; }
-
-    /* ── ENC CARD ── */
-    .enc {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 15px;
-      margin-bottom: 10px;
-      background: #fafbfc;
-    }
-    .enc:last-child { margin-bottom: 0; }
-    .enc-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; }
-    .enc-desc { font-size: 14px; font-weight: 700; flex: 1; line-height: 1.4; }
-    .enc-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-    .enc-obs  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
-    .enc-status-row { display: flex; gap: 5px; flex-wrap: wrap; }
-    .stt-btn {
-      padding: 3px 10px;
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      background: #fff;
-      color: var(--muted);
-      transition: all 0.12s;
-    }
-    .stt-btn.on-pend { background: #fff3cd; color: #7a5900; border-color: #e9a31a; }
-    .stt-btn.on-and  { background: #d0e8ff; color: #004da1; border-color: #2d7dd2; }
-    .stt-btn.on-ok   { background: #d1f0e0; color: #155a35; border-color: #2a9d6e; }
-    .stt-btn.on-can  { background: #e9ecef; color: #495057; border-color: #adb5bd; }
-    .enc-mat { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 10px; }
-    .enc-mat-hdr { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-
-    /* ── AVATAR ── */
-    .avatar {
-      width: 38px; height: 38px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 15px; flex-shrink: 0;
-    }
-
-    /* ── MODAL ── */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      background: rgba(10,18,35,0.55);
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .overlay.open { display: flex; }
-    .modal {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      width: 100%;
-      max-width: 540px;
-      max-height: 92vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
-      animation: pop .17s ease;
-    }
-    @keyframes pop { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
-    .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .modal-title { font-size: 16px; font-weight: 800; }
-
-    /* ── MODAL TABS ── */
-    .mtabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-    .mtab {
-      padding: 8px 18px;
-      border: none;
-      background: none;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: all 0.14s;
-    }
-    .mtab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-    /* ── FILE DROP ── */
-    .file-drop {
-      border: 2px dashed var(--border);
-      border-radius: 8px;
-      padding: 22px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.14s;
-      color: var(--muted);
-      display: block;
-    }
-    .file-drop:hover { border-color: var(--accent); color: var(--accent); background: rgba(45,125,210,0.04); }
-    .file-drop input { display: none; }
-    .file-drop-ico { font-size: 26px; margin-bottom: 5px; }
-
-    /* ── ALERT ── */
-    .alert-w { background: #fff3cd; color: #7a5900; border: 1px solid #ffd54f; padding: 9px 13px; border-radius: 7px; font-size: 12px; margin-bottom: 12px; }
-
-    /* ── FILTER BAR ── */
-    .fbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .fbar .fc { width: auto; flex: 1; min-width: 140px; }
-
-    /* ── CLICKABLE CARD ── */
-    .c-card { cursor: pointer; transition: box-shadow 0.15s, transform 0.12s; }
-    .c-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.12); transform: translateY(-1px); }
-
-    /* ── DASH GRID ── */
-    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 620px) { .dash-grid { grid-template-columns: 1fr; } }
+    .prog-wrap { margin-bottom:10px; }
+    .prog-lbl { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .prog-bar { height:6px; background:var(--bdr); border-radius:3px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--ok); border-radius:3px; transition:width .4s; }
 
     /* ── CHIPS ── */
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .chip strong { color: var(--text); }
+    .chips { display:flex; flex-wrap:wrap; gap:7px; }
+    .chip { display:inline-flex; align-items:center; gap:5px; background:var(--bg); border:1px solid var(--bdr); border-radius:20px; padding:3px 11px; font-size:12px; color:var(--muted); }
+    .chip strong { color:var(--txt); }
+    .chip-sm { padding:2px 9px; font-size:11px; }
+
+    /* ── MATERIAIS ── */
+    .mat-list { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    .mat-item { display:flex; align-items:center; gap:9px; background:var(--bg); border-radius:7px; padding:8px 10px; }
+    .mat-ico  { font-size:16px; flex-shrink:0; }
+    .mat-body { flex:1; min-width:0; }
+    .mat-name { font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mat-name a { color:var(--acc); text-decoration:none; }
+    .mat-name a:hover { text-decoration:underline; }
+    .mat-sub { font-size:11px; color:var(--muted); }
+    .no-mat { font-size:12px; color:var(--muted); font-style:italic; }
+
+    /* ── INFORMES ── */
+    .informe-blk { border:1px solid var(--bdr); border-radius:8px; padding:14px 15px; margin-bottom:10px; background:#fafbfc; }
+    .informe-blk:last-child { margin-bottom:0; }
+    .informe-hd { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .informe-pessoa { font-size:14px; font-weight:800; }
+    .informe-area { font-size:12px; color:var(--muted); padding:2px 8px; background:var(--bg); border-radius:10px; border:1px solid var(--bdr); }
+    .informe-itens { list-style:none; display:flex; flex-direction:column; gap:5px; }
+    .informe-itens li { font-size:13px; line-height:1.5; padding-left:14px; position:relative; }
+    .informe-itens li::before { content:"•"; position:absolute; left:0; color:var(--acc); font-weight:700; }
+
+    /* ── PAUTAS ── */
+    .pauta-blk { border-left:3px solid var(--acc); padding:10px 14px; margin-bottom:12px; background:#f7f9fc; border-radius:0 8px 8px 0; }
+    .pauta-blk:last-child { margin-bottom:0; }
+    .pauta-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    .pauta-titulo { font-size:14px; font-weight:800; color:var(--pri); }
+    .pauta-notas { font-size:13px; color:var(--muted); line-height:1.65; white-space:pre-wrap; }
+
+    /* ── ENC CARD ── */
+    .enc { border:1px solid var(--bdr); border-radius:8px; padding:14px 15px; margin-bottom:10px; background:#fafbfc; }
+    .enc:last-child { margin-bottom:0; }
+    .enc-top  { display:flex; align-items:flex-start; gap:10px; margin-bottom:7px; }
+    .enc-desc { font-size:14px; font-weight:700; flex:1; line-height:1.4; }
+    .enc-meta { font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+    .enc-obs  { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+    .stt-row  { display:flex; gap:5px; flex-wrap:wrap; }
+    .stt-btn  { padding:3px 10px; border-radius:5px; font-size:11px; font-weight:700; border:1px solid var(--bdr); cursor:pointer; background:#fff; color:var(--muted); transition:all .12s; }
+    .stt-btn.on-pend { background:#fff3cd; color:#7a5900; border-color:#e9a31a; }
+    .stt-btn.on-and  { background:#d0e8ff; color:#004da1; border-color:#2d7dd2; }
+    .stt-btn.on-ok   { background:#d1f0e0; color:#155a35; border-color:#2a9d6e; }
+    .stt-btn.on-can  { background:#e9ecef; color:#495057; border-color:#adb5bd; }
+    .enc-mat { border-top:1px solid var(--bdr); margin-top:12px; padding-top:10px; }
+    .enc-mat-hd { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+
+    /* ── AVATAR ── */
+    .avatar { width:38px; height:38px; border-radius:50%; background:var(--acc); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0; }
+
+    /* ── MODAL ── */
+    .overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(10,18,35,.55); align-items:center; justify-content:center; padding:16px; }
+    .overlay.open { display:flex; }
+    .modal { background:#fff; border-radius:12px; padding:24px; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.22); animation:pop .17s ease; }
+    @keyframes pop { from { transform:translateY(10px); opacity:0; } to { transform:none; opacity:1; } }
+    .modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .modal-title { font-size:16px; font-weight:800; }
+    .mtabs { display:flex; border-bottom:1px solid var(--bdr); margin-bottom:16px; }
+    .mtab { padding:8px 18px; border:none; background:none; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .14s; }
+    .mtab.active { color:var(--acc); border-bottom-color:var(--acc); }
+
+    /* ── FILE DROP ── */
+    .file-drop { border:2px dashed var(--bdr); border-radius:8px; padding:22px 16px; text-align:center; cursor:pointer; transition:all .14s; color:var(--muted); display:block; }
+    .file-drop:hover { border-color:var(--acc); color:var(--acc); background:rgba(45,125,210,.04); }
+    .file-drop input { display:none; }
+    .file-drop-ico { font-size:26px; margin-bottom:5px; }
+
+    /* ── ALERT ── */
+    .alert-w { background:#fff3cd; color:#7a5900; border:1px solid #ffd54f; padding:9px 13px; border-radius:7px; font-size:12px; margin-bottom:12px; }
+
+    /* ── FILTER BAR ── */
+    .fbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+    .fbar .fc { width:auto; flex:1; min-width:140px; }
+
+    /* ── CLICKABLE CARD ── */
+    .c-card { cursor:pointer; transition:box-shadow .15s, transform .12s; }
+    .c-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.12); transform:translateY(-1px); }
+
+    /* ── DASH GRID ── */
+    .dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:620px) { .dash-grid { grid-template-columns:1fr; } }
 
     /* ── SECTION LABEL ── */
-    .slbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
+    .slbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin-bottom:8px; }
+
+    /* ── RELATORIA ROW ── */
+    .rel-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; }
+    .rel-tag { background:var(--bg); border:1px solid var(--bdr); border-radius:6px; padding:5px 10px; font-size:12px; }
+    .rel-tag span { font-weight:700; color:var(--txt); }
+    .rel-tag small { color:var(--muted); }
 
     /* ── TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--primary);
-      color: #fff;
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s;
-      z-index: 999;
-      white-space: nowrap;
-    }
-    #toast.show { opacity: 1; }
+    #toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--pri); color:#fff; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:999; white-space:nowrap; }
+    #toast.show { opacity:1; }
+
+    /* ── DIVIDER ── */
+    .div { height:1px; background:var(--bdr); margin:14px 0; }
   </style>
 </head>
 <body>
@@ -446,15 +241,13 @@
 <div class="overlay" id="overlay" onclick="App.overlayClick(event)">
   <div class="modal" id="modal"></div>
 </div>
-
 <div id="toast"></div>
 
 <script>
 /* ============================================================
    UTILS
 ============================================================ */
-const uid   = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
-const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
 
 function fmtDate(s) {
   if (!s) return '—';
@@ -463,16 +256,13 @@ function fmtDate(s) {
 
 function isLate(s) {
   if (!s) return false;
-  return new Date(s + 'T00:00:00') < today();
+  const t = new Date(); t.setHours(0,0,0,0);
+  return new Date(s + 'T00:00:00') < t;
 }
 
 function esc(s) {
   if (s == null) return '';
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function safeUrl(u) {
@@ -490,14 +280,16 @@ function fmtBytes(b) {
   return (b/1048576).toFixed(1) + ' MB';
 }
 
-function getPessoa(data, id) {
-  return data.pessoas.find(p => p.id === id);
+function getPessoa(data, id) { return data.pessoas.find(p => p.id === id); }
+
+function getNomes(data, ids) {
+  if (!ids || !ids.length) return '—';
+  return ids.map(id => { const p = getPessoa(data, id); return p ? p.nome : '?'; }).join(', ');
 }
 
 function badgeStatus(status, prazo) {
-  if ((status === 'pendente' || status === 'em_andamento') && prazo && isLate(prazo)) {
+  if ((status === 'pendente' || status === 'em_andamento') && prazo && isLate(prazo))
     return '<span class="badge b-late">Atrasado</span>';
-  }
   const cls = { pendente:'b-pend', em_andamento:'b-and', concluido:'b-ok', cancelado:'b-can' };
   const lbl = { pendente:'Pendente', em_andamento:'Em andamento', concluido:'Concluído', cancelado:'Cancelado' };
   return `<span class="badge ${cls[status]||''}">${lbl[status]||status}</span>`;
@@ -505,55 +297,41 @@ function badgeStatus(status, prazo) {
 
 function toast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-/* ── Material renderer ── */
 function renderMats(mats, delCb) {
   if (!mats || !mats.length) return '<p class="no-mat">Nenhum material vinculado.</p>';
   return '<div class="mat-list">' + mats.map((m, i) => {
-    const del = delCb
-      ? `<button class="ico-btn" style="color:var(--danger)" title="Remover" onclick="${delCb}(${i})">✕</button>`
-      : '';
+    const del = delCb ? `<button class="ico-btn" style="color:var(--err)" title="Remover" onclick="${delCb}(${i})">✕</button>` : '';
     if (m.tipo === 'link') {
-      return `<div class="mat-item">
-        <span class="mat-ico">🔗</span>
-        <div class="mat-body">
-          <div class="mat-name"><a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">${esc(m.titulo||m.url)}</a></div>
-          ${m.descricao ? `<div class="mat-sub">${esc(m.descricao)}</div>` : ''}
-        </div>${del}
-      </div>`;
+      return `<div class="mat-item"><span class="mat-ico">🔗</span><div class="mat-body">
+        <div class="mat-name"><a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">${esc(m.titulo||m.url)}</a></div>
+        ${m.descricao ? `<div class="mat-sub">${esc(m.descricao)}</div>` : ''}
+      </div>${del}</div>`;
     } else {
-      return `<div class="mat-item">
-        <span class="mat-ico">📄</span>
-        <div class="mat-body">
-          <div class="mat-name"><a href="${m.dados}" download="${esc(m.nome)}">${esc(m.nome)}</a></div>
-          ${m.tamanho ? `<div class="mat-sub">${fmtBytes(m.tamanho)}</div>` : ''}
-        </div>${del}
-      </div>`;
+      return `<div class="mat-item"><span class="mat-ico">📄</span><div class="mat-body">
+        <div class="mat-name"><a href="${m.dados}" download="${esc(m.nome)}">${esc(m.nome)}</a></div>
+        ${m.tamanho ? `<div class="mat-sub">${fmtBytes(m.tamanho)}</div>` : ''}
+      </div>${del}</div>`;
     }
   }).join('') + '</div>';
 }
 
 /* ============================================================
-   DATA LAYER
+   DB
 ============================================================ */
 const DB = {
-  KEY: 'liderancas_v2',
+  KEY: 'liderancas_v3',
   get() {
-    try {
-      const r = localStorage.getItem(this.KEY);
-      return r ? JSON.parse(r) : { pessoas:[], reunioes:[] };
-    } catch { return { pessoas:[], reunioes:[] }; }
+    try { const r = localStorage.getItem(this.KEY); return r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
+    catch { return { pessoas:[], reunioes:[] }; }
   },
   save(d) {
     try { localStorage.setItem(this.KEY, JSON.stringify(d)); }
     catch(e) {
-      if (e.name === 'QuotaExceededError')
-        alert('Armazenamento cheio. O arquivo é muito grande.\nPrefira hospedar no Google Drive e inserir o link.');
+      if (e.name === 'QuotaExceededError') alert('Armazenamento cheio. O arquivo é muito grande.\nPrefira hospedar no Google Drive e inserir o link.');
     }
   },
   export() {
@@ -561,8 +339,7 @@ const DB = {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'liderancas_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    a.click(); URL.revokeObjectURL(a.href);
   },
   import(str) {
     const d = JSON.parse(str);
@@ -575,27 +352,20 @@ const DB = {
    APP
 ============================================================ */
 const App = {
-  view:    'dashboard',
-  params:  {},
-  filters: { status:'', pessoa:'' },
-  _payload: null,
-  _tab:    'link',
-  _file:   null,
+  view: 'dashboard', params: {}, filters: { status:'', pessoa:'' },
+  _payload: null, _tab: 'link', _file: null,
 
-  /* ── navigation ── */
   go(view, params = {}) {
-    this.view   = view;
-    this.params = params;
+    this.view = view; this.params = params;
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const key = (view === 'reuniao') ? 'reunioes' : view;
+    const key = view === 'reuniao' ? 'reunioes' : view;
     const nb = document.getElementById('nav-' + key);
     if (nb) nb.classList.add('active');
-    this.render();
-    window.scrollTo(0, 0);
+    this.render(); window.scrollTo(0, 0);
   },
 
   render() {
-    const el   = document.getElementById('app');
+    const el = document.getElementById('app');
     const data = DB.get();
     switch (this.view) {
       case 'dashboard':       el.innerHTML = this.vDash(data);    break;
@@ -612,84 +382,75 @@ const App = {
 
   /* ── DASHBOARD ── */
   vDash(data) {
-    const all  = data.reunioes.flatMap(r => (r.encaminhamentos||[]).map(e => ({...e, _rid:r.id, _rdata:r.data})));
-    const tot  = all.length;
-    const ok   = all.filter(e => e.status === 'concluido').length;
-    const open = all.filter(e => e.status !== 'concluido' && e.status !== 'cancelado').length;
-    const late = all.filter(e => (e.status==='pendente'||e.status==='em_andamento') && isLate(e.prazo)).length;
+    const allEncs = data.reunioes.flatMap(r => (r.encaminhamentos||[]).map(e => ({...e, _rid:r.id, _rdata:r.data})));
+    const tot  = allEncs.length;
+    const ok   = allEncs.filter(e => e.status === 'concluido').length;
+    const open = allEncs.filter(e => e.status !== 'concluido' && e.status !== 'cancelado').length;
+    const late = allEncs.filter(e => (e.status==='pendente'||e.status==='em_andamento') && isLate(e.prazo)).length;
     const pct  = tot ? Math.round(ok/tot*100) : 0;
-
     const recent = [...data.reunioes].sort((a,b) => new Date(b.data)-new Date(a.data)).slice(0,4);
-    const urgent = all
+    const urgent = allEncs
       .filter(e => e.status !== 'concluido' && e.status !== 'cancelado')
       .sort((a,b) => { if(!a.prazo) return 1; if(!b.prazo) return -1; return new Date(a.prazo)-new Date(b.prazo); })
-      .slice(0, 5);
+      .slice(0,5);
 
     return `
       <div class="ph">
         <span class="pt">Dashboard</span>
         <button class="btn btn-p btn-sm" onclick="App.openModal('nova-reuniao')">+ Nova Reunião</button>
       </div>
-
       <div class="metrics">
         <div class="metric">  <div class="metric-n">${data.reunioes.length}</div><div class="metric-l">Reuniões</div></div>
-        <div class="metric s"><div class="metric-n">${ok}</div>  <div class="metric-l">Concluídos</div></div>
+        <div class="metric s"><div class="metric-n">${ok}</div><div class="metric-l">Concluídos</div></div>
         <div class="metric w"><div class="metric-n">${open}</div><div class="metric-l">Em aberto</div></div>
         <div class="metric d"><div class="metric-n">${late}</div><div class="metric-l">Atrasados</div></div>
       </div>
-
-      ${tot ? `
-      <div class="card" style="margin-bottom:14px">
-        <div class="prog-lbl"><span style="font-weight:700">Progresso geral dos encaminhamentos</span><span>${pct}% concluído</span></div>
+      ${tot ? `<div class="card" style="margin-bottom:14px">
+        <div class="prog-lbl"><span style="font-weight:700">Progresso geral dos encaminhamentos</span><span>${pct}%</span></div>
         <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
         <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--muted)">
           <span>✅ ${ok} concluídos</span>
-          <span>🔄 ${all.filter(e=>e.status==='em_andamento').length} em andamento</span>
-          <span>⏳ ${all.filter(e=>e.status==='pendente').length} pendentes</span>
+          <span>🔄 ${allEncs.filter(e=>e.status==='em_andamento').length} em andamento</span>
+          <span>⏳ ${allEncs.filter(e=>e.status==='pendente').length} pendentes</span>
         </div>
       </div>` : ''}
-
       <div class="dash-grid">
         <div class="card">
           <div class="card-hdr"><span class="card-title">Últimas Reuniões</span></div>
           ${recent.length ? recent.map(r => {
             const encs = r.encaminhamentos||[];
-            const rlate = encs.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo)).length;
+            const rl = encs.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo)).length;
+            const parts = (r.participantes||[]).map(id => { const p=getPessoa(data,id); return p?p.nome:'?'; });
             return `<div class="li c-card" onclick="App.go('reuniao',{id:'${r.id}'})">
               <div class="li-body">
-                <div class="li-title">📅 ${fmtDate(r.data)}</div>
+                <div class="li-title">📅 ${fmtDate(r.data)}${r.titulo?' · '+esc(r.titulo):''}</div>
                 <div class="li-meta">
+                  ${parts.length ? `<span>👥 ${parts.slice(0,3).join(', ')}${parts.length>3?` +${parts.length-3}`:''}</span>` : ''}
                   <span>${encs.length} enc.</span>
-                  ${rlate?`<span style="color:var(--danger)">⚠️ ${rlate} atrasados</span>`:''}
-                  ${(r.materiais||[]).length?`<span>📎 ${r.materiais.length}</span>`:''}
+                  ${rl?`<span style="color:var(--err)">⚠️ ${rl} atrasados</span>`:''}
                 </div>
               </div>
               <span style="color:var(--muted);font-size:18px">›</span>
             </div>`;
           }).join('') : '<div class="empty" style="padding:16px"><p>Nenhuma reunião ainda.</p></div>'}
         </div>
-
         <div class="card">
           <div class="card-hdr">
             <span class="card-title">Encaminhamentos Urgentes</span>
             <button class="btn btn-o btn-sm" onclick="App.go('encaminhamentos')">Ver todos</button>
           </div>
-          ${urgent.length ? urgent.map(e => {
-            const p = getPessoa(data, e.responsavel);
-            return `<div class="li">
-              <div class="li-body">
-                <div class="li-title">${esc(e.descricao||'').slice(0,60)}${(e.descricao||'').length>60?'…':''}</div>
-                <div class="li-meta">
-                  ${p?`<span>👤 ${esc(p.nome)}</span>`:''}
-                  ${e.prazo?`<span>${isLate(e.prazo)?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
-                  ${badgeStatus(e.status, e.prazo)}
-                </div>
+          ${urgent.length ? urgent.map(e => `<div class="li">
+            <div class="li-body">
+              <div class="li-title">${esc(e.descricao||'').slice(0,60)}${(e.descricao||'').length>60?'…':''}</div>
+              <div class="li-meta">
+                ${(e.responsaveis||[]).length?`<span>👤 ${esc(getNomes(data,e.responsaveis))}</span>`:''}
+                ${e.prazo?`<span>${isLate(e.prazo)?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
+                ${badgeStatus(e.status,e.prazo)}
               </div>
-            </div>`;
-          }).join('') : '<div class="empty" style="padding:16px"><p>Nenhum em aberto.</p></div>'}
+            </div>
+          </div>`).join('') : '<div class="empty" style="padding:16px"><p>Nenhum em aberto.</p></div>'}
         </div>
       </div>
-
       ${data.pessoas.filter(p=>p.status==='ativo').length ? `
       <div class="card" style="margin-top:2px">
         <div class="card-hdr">
@@ -698,13 +459,13 @@ const App = {
         </div>
         <div class="chips">
           ${data.pessoas.filter(p=>p.status==='ativo').map(p=>`
-            <div class="chip"><strong>${esc(p.nome)}</strong>${p.funcao?`<span>· ${esc(p.funcao)}</span>`:''}</div>
+            <div class="chip"><strong>${esc(p.nome)}</strong>${p.area?`<span>· ${esc(p.area)}</span>`:''}</div>
           `).join('')}
         </div>
       </div>` : ''}`;
   },
 
-  /* ── REUNIÕES (lista) ── */
+  /* ── REUNIÕES LISTA ── */
   vReunioes(data) {
     const sorted = [...data.reunioes].sort((a,b) => new Date(b.data)-new Date(a.data));
     return `
@@ -715,20 +476,22 @@ const App = {
       ${!sorted.length
         ? `<div class="card"><div class="empty"><div class="empty-ico">📋</div><h3>Nenhuma reunião registrada</h3><p>Registre a primeira reunião do coletivo.</p></div></div>`
         : sorted.map(r => {
-            const encs = r.encaminhamentos||[];
-            const ok   = encs.filter(e=>e.status==='concluido').length;
-            const rlate= encs.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo)).length;
-            const mats = (r.materiais||[]).length;
+            const encs  = r.encaminhamentos||[];
+            const ok    = encs.filter(e=>e.status==='concluido').length;
+            const rl    = encs.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo)).length;
+            const parts = (r.participantes||[]).map(id => { const p=getPessoa(data,id); return p?p.nome:'?'; });
             return `<div class="card c-card" onclick="App.go('reuniao',{id:'${r.id}'})">
               <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:15px;font-weight:800;margin-bottom:6px">📅 ${fmtDate(r.data)}</div>
-                  ${r.debateCentral?`<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:9px">${esc(r.debateCentral).slice(0,160)}${r.debateCentral.length>160?'…':''}</p>`:''}
+                  <div style="font-size:15px;font-weight:800;margin-bottom:5px">📅 ${fmtDate(r.data)}${r.titulo?' <span style="font-weight:500;color:var(--muted)">· '+esc(r.titulo)+'</span>':''}</div>
+                  ${parts.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">👥 ${parts.join(', ')}</div>`:''}
                   <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
                     <span>📋 ${encs.length} encaminhamentos</span>
                     <span>✅ ${ok} concluídos</span>
-                    ${rlate?`<span style="color:var(--danger)">⚠️ ${rlate} atrasados</span>`:''}
-                    ${mats?`<span>📎 ${mats} materiais</span>`:''}
+                    ${rl?`<span style="color:var(--err)">⚠️ ${rl} atrasados</span>`:''}
+                    ${(r.informes||[]).length?`<span>📣 ${r.informes.length} informes</span>`:''}
+                    ${(r.pautas||[]).length?`<span>📋 ${r.pautas.length} pautas</span>`:''}
+                    ${(r.materiais||[]).length?`<span>📎 ${r.materiais.length}</span>`:''}
                   </div>
                 </div>
                 <span style="color:var(--muted);font-size:20px;margin-top:2px">›</span>
@@ -737,41 +500,98 @@ const App = {
           }).join('')}`;
   },
 
-  /* ── REUNIÃO (detalhe) ── */
+  /* ── REUNIÃO DETALHE ── */
   vReuniao(data) {
     const r = data.reunioes.find(x => x.id === this.params.id);
     if (!r) return '<p>Reunião não encontrada.</p>';
-    const encs = r.encaminhamentos||[];
-    const mats = r.materiais||[];
-    const rid  = r.id;
-    const sttLabels = { pendente:'Pendente', em_andamento:'Em andamento', concluido:'Concluído', cancelado:'Cancelado' };
-    const sttCls    = { pendente:'on-pend',  em_andamento:'on-and',       concluido:'on-ok',    cancelado:'on-can' };
+    const rid    = r.id;
+    const encs   = r.encaminhamentos||[];
+    const mats   = r.materiais||[];
+    const infs   = r.informes||[];
+    const pautas = r.pautas||[];
+    const parts  = (r.participantes||[]).map(id => { const p=getPessoa(data,id); return p?p.nome:'?'; });
+    const relNome      = r.relatoria      ? (getPessoa(data,r.relatoria)?.nome||'?')      : null;
+    const proxRelNome  = r.proximaRelatoria ? (getPessoa(data,r.proximaRelatoria)?.nome||'?') : null;
+    const sttCls = { pendente:'on-pend', em_andamento:'on-and', concluido:'on-ok', cancelado:'on-can' };
+    const sttLbl = { pendente:'Pendente', em_andamento:'Em andamento', concluido:'Concluído', cancelado:'Cancelado' };
 
     return `
       <button class="back-btn" onclick="App.go('reunioes')">← Voltar</button>
       <div class="ph">
-        <span class="pt">📅 ${fmtDate(r.data)}</span>
+        <span class="pt">📅 ${fmtDate(r.data)}${r.titulo?' · '+esc(r.titulo):''}</span>
         <div style="display:flex;gap:8px">
           <button class="btn btn-o btn-sm" onclick="App.openModal('editar-reuniao','${rid}')">Editar</button>
           <button class="btn btn-d btn-sm" onclick="App.delReuniao('${rid}')">Excluir</button>
         </div>
       </div>
 
+      <!-- Participantes + Relatoria -->
       <div class="card">
-        <div class="slbl">📌 Debate Central</div>
-        <p style="font-size:14px;line-height:1.75;color:${r.debateCentral?'var(--text)':'var(--muted)'}">
-          ${r.debateCentral ? esc(r.debateCentral).replace(/\n/g,'<br>') : 'Nenhum debate registrado.'}
-        </p>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px">
+            <div class="slbl">👥 Participantes</div>
+            ${parts.length
+              ? `<div class="chips">${parts.map(n=>`<div class="chip chip-sm"><strong>${esc(n)}</strong></div>`).join('')}</div>`
+              : '<span style="font-size:13px;color:var(--muted)">Não registrado</span>'}
+          </div>
+          <div>
+            <div class="slbl">📝 Relatoria</div>
+            <div class="rel-row">
+              ${relNome ? `<div class="rel-tag"><small>Fez:</small> <span>${esc(relNome)}</span></div>` : '<span style="font-size:13px;color:var(--muted)">—</span>'}
+              ${proxRelNome ? `<span style="color:var(--muted);font-size:13px">→</span><div class="rel-tag"><small>Próxima:</small> <span>${esc(proxRelNome)}</span></div>` : ''}
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- Informes -->
       <div class="card">
         <div class="card-hdr">
-          <span class="card-title">📎 Links e Documentos da Reunião</span>
-          <button class="btn btn-o btn-sm" onclick="App.openModal('add-mat',{alvo:'reuniao',rid:'${rid}'})">+ Adicionar</button>
+          <span class="card-title">📣 Informes</span>
+          <button class="btn btn-o btn-sm" onclick="App.openModal('add-informe','${rid}')">+ Adicionar</button>
         </div>
-        ${renderMats(mats, `App.removeMat.bind(App,'reuniao','${rid}',null)`)}
+        ${!infs.length
+          ? '<p style="font-size:13px;color:var(--muted)">Nenhum informe registrado.</p>'
+          : infs.map((inf,idx) => {
+              const p = getPessoa(data, inf.pessoaId);
+              return `<div class="informe-blk">
+                <div class="informe-hd">
+                  <span class="informe-pessoa">${esc(p?.nome||inf.pessoaId||'?')}</span>
+                  ${inf.area?`<span class="informe-area">${esc(inf.area)}</span>`:''}
+                  <div style="margin-left:auto;display:flex;gap:3px">
+                    <button class="ico-btn" onclick="App.openModal('editar-informe',{rid:'${rid}',idx:${idx}})">✏️</button>
+                    <button class="ico-btn" style="color:var(--err)" onclick="App.delInfome('${rid}',${idx})">🗑️</button>
+                  </div>
+                </div>
+                <ul class="informe-itens">
+                  ${(inf.itens||[]).map(it=>`<li>${esc(it)}</li>`).join('')}
+                </ul>
+              </div>`;
+            }).join('')}
       </div>
 
+      <!-- Pautas -->
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">📋 Pautas</span>
+          <button class="btn btn-o btn-sm" onclick="App.openModal('add-pauta','${rid}')">+ Adicionar</button>
+        </div>
+        ${!pautas.length
+          ? '<p style="font-size:13px;color:var(--muted)">Nenhuma pauta registrada.</p>'
+          : pautas.map((p,idx) => `
+            <div class="pauta-blk">
+              <div class="pauta-hd">
+                <span class="pauta-titulo">${esc(p.titulo||'')}</span>
+                <div style="display:flex;gap:3px">
+                  <button class="ico-btn" onclick="App.openModal('editar-pauta',{rid:'${rid}',idx:${idx}})">✏️</button>
+                  <button class="ico-btn" style="color:var(--err)" onclick="App.delPauta('${rid}',${idx})">🗑️</button>
+                </div>
+              </div>
+              ${p.notas?`<p class="pauta-notas">${esc(p.notas)}</p>`:''}
+            </div>`).join('')}
+      </div>
+
+      <!-- Encaminhamentos -->
       <div class="card">
         <div class="card-hdr">
           <span class="card-title">✅ Encaminhamentos <span style="font-weight:400;font-size:13px;color:var(--muted)">(${encs.length})</span></span>
@@ -780,76 +600,79 @@ const App = {
         ${!encs.length
           ? '<p style="font-size:13px;color:var(--muted)">Nenhum encaminhamento registrado.</p>'
           : encs.map((e,idx) => {
-              const p = getPessoa(data, e.responsavel);
+              const resps = (e.responsaveis||[]).map(id=>{const p=getPessoa(data,id);return p?p.nome:'?';}).join(', ');
               const eMats = e.materiais||[];
               return `<div class="enc">
                 <div class="enc-top">
                   <div class="enc-desc">${esc(e.descricao||'')}</div>
                   <div style="display:flex;gap:3px;flex-shrink:0">
-                    <button class="ico-btn" title="Editar" onclick="App.openModal('editar-enc',{rid:'${rid}',idx:${idx}})">✏️</button>
-                    <button class="ico-btn" title="Excluir" style="color:var(--danger)" onclick="App.delEnc('${rid}',${idx})">🗑️</button>
+                    <button class="ico-btn" onclick="App.openModal('editar-enc',{rid:'${rid}',idx:${idx}})">✏️</button>
+                    <button class="ico-btn" style="color:var(--err)" onclick="App.delEnc('${rid}',${idx})">🗑️</button>
                   </div>
                 </div>
                 <div class="enc-meta">
-                  ${p?`<span>👤 ${esc(p.nome)}</span>`:''}
+                  ${resps?`<span>👤 ${esc(resps)}</span>`:''}
                   ${e.prazo?`<span>📅 ${fmtDate(e.prazo)}</span>`:''}
-                  ${badgeStatus(e.status, e.prazo)}
+                  ${badgeStatus(e.status,e.prazo)}
                 </div>
                 ${e.observacoes?`<div class="enc-obs">${esc(e.observacoes).replace(/\n/g,'<br>')}</div>`:''}
-                <div class="enc-status-row">
-                  ${['pendente','em_andamento','concluido','cancelado'].map(s=>`
-                    <button class="stt-btn ${e.status===s?sttCls[s]:''}" onclick="App.setEncStatus('${rid}',${idx},'${s}')">
-                      ${sttLabels[s]}
-                    </button>`).join('')}
+                <div class="stt-row">
+                  ${['pendente','em_andamento','concluido','cancelado'].map(s=>
+                    `<button class="stt-btn ${e.status===s?sttCls[s]:''}" onclick="App.setEncStatus('${rid}',${idx},'${s}')">${sttLbl[s]}</button>`
+                  ).join('')}
                 </div>
                 <div class="enc-mat">
-                  <div class="enc-mat-hdr">
-                    📎 Materiais
+                  <div class="enc-mat-hd">📎 Materiais
                     <button class="btn btn-o btn-xs" onclick="App.openModal('add-mat',{alvo:'enc',rid:'${rid}',idx:${idx}})">+</button>
                   </div>
                   ${renderMats(eMats, `App.removeMat.bind(App,'enc','${rid}',${idx})`)}
                 </div>
               </div>`;
             }).join('')}
+      </div>
+
+      <!-- Materiais gerais -->
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">📎 Links e Documentos da Reunião</span>
+          <button class="btn btn-o btn-sm" onclick="App.openModal('add-mat',{alvo:'reuniao',rid:'${rid}'})">+ Adicionar</button>
+        </div>
+        ${renderMats(mats, `App.removeMat.bind(App,'reuniao','${rid}',null)`)}
       </div>`;
   },
 
-  /* ── ENCAMINHAMENTOS (painel) ── */
+  /* ── ENCAMINHAMENTOS PAINEL ── */
   vEncs(data) {
     const fs = this.filters.status;
     const fp = this.filters.pessoa;
-
     let all = data.reunioes.flatMap(r =>
       (r.encaminhamentos||[]).map((e,idx) => ({...e, _rid:r.id, _rdata:r.data, _idx:idx}))
     );
     if (fs === 'atrasado') all = all.filter(e => (e.status==='pendente'||e.status==='em_andamento') && isLate(e.prazo));
     else if (fs) all = all.filter(e => e.status === fs);
-    if (fp) all = all.filter(e => e.responsavel === fp);
+    if (fp) all = all.filter(e => (e.responsaveis||[]).includes(fp));
     all.sort((a,b) => { if(!a.prazo) return 1; if(!b.prazo) return -1; return new Date(a.prazo)-new Date(b.prazo); });
 
     const byPessoa = data.pessoas.map(p => {
-      const mine = data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>e.responsavel===p.id);
+      const mine = data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>(e.responsaveis||[]).includes(p.id));
       return { ...p, tot:mine.length, ok:mine.filter(e=>e.status==='concluido').length };
     }).filter(p => p.tot > 0);
 
     return `
       <div class="ph"><span class="pt">Encaminhamentos</span></div>
-
-      ${byPessoa.length ? `
-      <div class="card" style="margin-bottom:14px">
+      ${byPessoa.length ? `<div class="card" style="margin-bottom:14px">
         <div class="card-title" style="margin-bottom:14px">Distribuição por pessoa</div>
         ${byPessoa.map(p => {
           const pct = p.tot ? Math.round(p.ok/p.tot*100) : 0;
           return `<div class="prog-wrap">
             <div class="prog-lbl">
-              <span><strong>${esc(p.nome)}</strong>${p.funcao?` · ${esc(p.funcao)}`:''} — ${p.tot} enc.</span>
+              <span><strong>${esc(p.nome)}</strong>${p.area?` · ${esc(p.area)}`:''} — ${p.tot} enc.</span>
               <span>${p.ok} concluídos (${pct}%)</span>
             </div>
             <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
           </div>`;
         }).join('')}
       </div>` : ''}
-
       <div class="fbar">
         <select class="fc" onchange="App.setFilter('status',this.value)">
           <option value=""            ${!fs?'selected':''}>Todos os status</option>
@@ -864,20 +687,19 @@ const App = {
           ${data.pessoas.map(p=>`<option value="${p.id}" ${fp===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
         </select>
       </div>
-
       <div class="card">
         ${!all.length
-          ? `<div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento encontrado</h3><p>Tente outros filtros ou registre reuniões.</p></div>`
+          ? `<div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento encontrado</h3><p>Tente outros filtros.</p></div>`
           : all.map(e => {
-              const p = getPessoa(data, e.responsavel);
+              const resps = getNomes(data, e.responsaveis||[]);
               return `<div class="li">
                 <div class="li-body">
                   <div class="li-title">${esc(e.descricao||'').slice(0,80)}${(e.descricao||'').length>80?'…':''}</div>
                   <div class="li-meta">
                     <span>📅 ${fmtDate(e._rdata)}</span>
-                    ${p?`<span>👤 ${esc(p.nome)}</span>`:''}
+                    ${resps&&resps!=='—'?`<span>👤 ${esc(resps)}</span>`:''}
                     ${e.prazo?`<span>${isLate(e.prazo)&&e.status!=='concluido'?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
-                    ${badgeStatus(e.status, e.prazo)}
+                    ${badgeStatus(e.status,e.prazo)}
                     ${(e.materiais||[]).length?`<span>📎 ${e.materiais.length}</span>`:''}
                   </div>
                 </div>
@@ -896,41 +718,37 @@ const App = {
       </div>
       ${!data.pessoas.length
         ? `<div class="card"><div class="empty"><div class="empty-ico">👥</div><h3>Nenhuma pessoa cadastrada</h3><p>Adicione os integrantes do coletivo.</p></div></div>`
-        : `<div class="card">
-            ${data.pessoas.map((p,idx) => {
-              const encs = data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>e.responsavel===p.id);
-              const ok   = encs.filter(e=>e.status==='concluido').length;
-              const open = encs.filter(e=>e.status!=='concluido'&&e.status!=='cancelado').length;
-              return `<div class="li">
-                <div class="avatar">${esc(p.nome||'?').charAt(0).toUpperCase()}</div>
-                <div class="li-body">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-                    <span style="font-weight:700;font-size:14px">${esc(p.nome)}</span>
-                    <span class="badge ${p.status==='ativo'?'b-ativ':'b-inat'}">${p.status==='ativo'?'Ativo':'Inativo'}</span>
-                  </div>
-                  <div class="li-meta">
-                    ${p.funcao?`<span>🔧 ${esc(p.funcao)}</span>`:''}
-                    <span>📋 ${encs.length} enc.</span>
-                    <span>✅ ${ok} concluídos</span>
-                    ${open?`<span>⏳ ${open} em aberto</span>`:''}
-                  </div>
+        : `<div class="card">${data.pessoas.map((p,idx) => {
+            const encs = data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>(e.responsaveis||[]).includes(p.id));
+            const ok   = encs.filter(e=>e.status==='concluido').length;
+            const open = encs.filter(e=>e.status!=='concluido'&&e.status!=='cancelado').length;
+            return `<div class="li">
+              <div class="avatar">${esc(p.nome||'?').charAt(0).toUpperCase()}</div>
+              <div class="li-body">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                  <span style="font-weight:700;font-size:14px">${esc(p.nome)}</span>
+                  <span class="badge ${p.status==='ativo'?'b-ativ':'b-inat'}">${p.status==='ativo'?'Ativo':'Inativo'}</span>
                 </div>
-                <div style="display:flex;gap:4px">
-                  <button class="ico-btn" title="Editar"  onclick="App.openModal('editar-pessoa',${idx})">✏️</button>
-                  <button class="ico-btn" title="Excluir" style="color:var(--danger)" onclick="App.delPessoa(${idx})">🗑️</button>
+                <div class="li-meta">
+                  ${p.area?`<span>🔧 ${esc(p.area)}</span>`:''}
+                  <span>📋 ${encs.length} enc.</span>
+                  <span>✅ ${ok} concluídos</span>
+                  ${open?`<span>⏳ ${open} em aberto</span>`:''}
                 </div>
-              </div>`;
-            }).join('')}
-           </div>`}`;
+              </div>
+              <div style="display:flex;gap:4px">
+                <button class="ico-btn" onclick="App.openModal('editar-pessoa',${idx})">✏️</button>
+                <button class="ico-btn" style="color:var(--err)" onclick="App.delPessoa(${idx})">🗑️</button>
+              </div>
+            </div>`;
+          }).join('')}</div>`}`;
   },
 
   /* ============================================================
      MODALS
   ============================================================ */
   openModal(type, payload) {
-    this._payload = payload;
-    this._tab  = 'link';
-    this._file = null;
+    this._payload = payload; this._tab = 'link'; this._file = null;
     const data = DB.get();
     const el   = document.getElementById('modal');
 
@@ -938,20 +756,89 @@ const App = {
     if (type === 'nova-reuniao' || type === 'editar-reuniao') {
       const isEdit = type === 'editar-reuniao';
       const r = isEdit ? data.reunioes.find(x=>x.id===payload) : null;
+      const parts = r?.participantes||[];
       el.innerHTML = `
-        <div class="modal-hdr">
-          <span class="modal-title">${isEdit?'Editar':'Nova'} Reunião</span>
-          <button class="ico-btn" onclick="App.closeModal()">✕</button>
+        <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Nova'} Reunião</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Data</label><input class="fc" type="date" id="m-data" value="${esc(r?.data||new Date().toISOString().slice(0,10))}"></div>
+          <div class="fg"><label class="fl">Tipo / Título</label><input class="fc" type="text" id="m-titulo" placeholder="Ex: Lideranças" value="${esc(r?.titulo||'Lideranças')}"></div>
         </div>
-        <div class="fg"><label class="fl">Data da reunião</label>
-          <input class="fc" type="date" id="m-data" value="${esc(r?.data||new Date().toISOString().slice(0,10))}">
-        </div>
-        <div class="fg"><label class="fl">Debate Central</label>
-          <textarea class="fc" id="m-debate" rows="5" placeholder="Resumo do principal tema discutido...">${esc(r?.debateCentral||'')}</textarea>
+        ${data.pessoas.filter(p=>p.status==='ativo').length ? `
+        <div class="fg"><label class="fl">Participantes</label>
+          <div class="chk-list">
+            ${data.pessoas.filter(p=>p.status==='ativo').map(p=>`
+              <label class="chk-item">
+                <input type="checkbox" value="${p.id}" ${parts.includes(p.id)?'checked':''} class="part-chk">
+                <span>${esc(p.nome)}${p.area?` <span style="color:var(--muted)">· ${esc(p.area)}</span>`:''}</span>
+              </label>`).join('')}
+          </div>
+        </div>` : ''}
+        <div class="frow">
+          <div class="fg"><label class="fl">Relatoria (fez)</label>
+            <select class="fc" id="m-rel">
+              <option value="">—</option>
+              ${data.pessoas.map(p=>`<option value="${p.id}" ${r?.relatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Próxima Relatoria</label>
+            <select class="fc" id="m-prox">
+              <option value="">—</option>
+              ${data.pessoas.map(p=>`<option value="${p.id}" ${r?.proximaRelatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            </select>
+          </div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
           <button class="btn btn-p" onclick="App.saveReuniao(${isEdit?`'${payload}'`:'null'})">Salvar</button>
+        </div>`;
+    }
+
+    /* ── add / editar informe ── */
+    else if (type === 'add-informe' || type === 'editar-informe') {
+      const isEdit = type === 'editar-informe';
+      const rid = isEdit ? payload.rid : payload;
+      const r   = data.reunioes.find(x=>x.id===rid);
+      const inf = isEdit ? (r?.informes||[])[payload.idx] : null;
+      const pAtual = inf ? getPessoa(data, inf.pessoaId) : null;
+      el.innerHTML = `
+        <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Novo'} Informe</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Pessoa</label>
+            <select class="fc" id="m-pessoa" onchange="App.preencheArea(this)">
+              <option value="">Selecione...</option>
+              ${data.pessoas.map(p=>`<option value="${p.id}" data-area="${esc(p.area||'')}" ${inf?.pessoaId===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Área</label>
+            <input class="fc" type="text" id="m-area" placeholder="Ex: Redação" value="${esc(inf?.area||pAtual?.area||'')}">
+          </div>
+        </div>
+        <div class="fg"><label class="fl">Itens (um por linha)</label>
+          <textarea class="fc" id="m-itens" rows="6" placeholder="Lorenzo rompeu o contrato com saída para 13/04&#10;Questão de férias e contratual&#10;Equipamento ficará no escritório">${esc((inf?.itens||[]).join('\n'))}</textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
+          <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
+          <button class="btn btn-p" onclick="App.saveInfome('${rid}',${isEdit?payload.idx:-1})">Salvar</button>
+        </div>`;
+    }
+
+    /* ── add / editar pauta ── */
+    else if (type === 'add-pauta' || type === 'editar-pauta') {
+      const isEdit = type === 'editar-pauta';
+      const rid = isEdit ? payload.rid : payload;
+      const r   = data.reunioes.find(x=>x.id===rid);
+      const p   = isEdit ? (r?.pautas||[])[payload.idx] : null;
+      el.innerHTML = `
+        <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Nova'} Pauta</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
+        <div class="fg"><label class="fl">Título</label>
+          <input class="fc" type="text" id="m-titulo" placeholder="Ex: Sindicato, Audiência, Financeiro..." value="${esc(p?.titulo||'')}">
+        </div>
+        <div class="fg"><label class="fl">Notas de discussão</label>
+          <textarea class="fc" id="m-notas" rows="6" placeholder="Resumo dos pontos discutidos...">${esc(p?.notas||'')}</textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
+          <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
+          <button class="btn btn-p" onclick="App.savePauta('${rid}',${isEdit?payload.idx:-1})">Salvar</button>
         </div>`;
     }
 
@@ -963,28 +850,26 @@ const App = {
       const e   = isEdit ? (r?.encaminhamentos||[])[payload.idx] : null;
       const sttL = { pendente:'Pendente', em_andamento:'Em andamento', concluido:'Concluído', cancelado:'Cancelado' };
       el.innerHTML = `
-        <div class="modal-hdr">
-          <span class="modal-title">${isEdit?'Editar':'Novo'} Encaminhamento</span>
-          <button class="ico-btn" onclick="App.closeModal()">✕</button>
-        </div>
+        <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Novo'} Encaminhamento</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
         <div class="fg"><label class="fl">Descrição</label>
-          <textarea class="fc" id="m-desc" rows="3" placeholder="O que foi decidido ou delegado...">${esc(e?.descricao||'')}</textarea>
+          <textarea class="fc" id="m-desc" rows="3" placeholder="O que foi decidido...">${esc(e?.descricao||'')}</textarea>
+        </div>
+        <div class="fg"><label class="fl">Responsáveis</label>
+          <div class="chk-list">
+            ${data.pessoas.map(p=>`
+              <label class="chk-item">
+                <input type="checkbox" value="${p.id}" ${(e?.responsaveis||[]).includes(p.id)?'checked':''} class="resp-chk">
+                <span>${esc(p.nome)}${p.area?` <span style="color:var(--muted)">· ${esc(p.area)}</span>`:''}</span>
+              </label>`).join('')}
+          </div>
         </div>
         <div class="frow">
-          <div class="fg"><label class="fl">Responsável</label>
-            <select class="fc" id="m-resp">
-              <option value="">Sem responsável</option>
-              ${data.pessoas.map(p=>`<option value="${p.id}" ${e?.responsavel===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+          <div class="fg"><label class="fl">Prazo</label><input class="fc" type="date" id="m-prazo" value="${esc(e?.prazo||'')}"></div>
+          <div class="fg"><label class="fl">Status</label>
+            <select class="fc" id="m-status">
+              ${['pendente','em_andamento','concluido','cancelado'].map(s=>`<option value="${s}" ${(e?.status||'pendente')===s?'selected':''}>${sttL[s]}</option>`).join('')}
             </select>
           </div>
-          <div class="fg"><label class="fl">Prazo</label>
-            <input class="fc" type="date" id="m-prazo" value="${esc(e?.prazo||'')}">
-          </div>
-        </div>
-        <div class="fg"><label class="fl">Status</label>
-          <select class="fc" id="m-status">
-            ${['pendente','em_andamento','concluido','cancelado'].map(s=>`<option value="${s}" ${(e?.status||'pendente')===s?'selected':''}>${sttL[s]}</option>`).join('')}
-          </select>
         </div>
         <div class="fg"><label class="fl">Observações</label>
           <textarea class="fc" id="m-obs" rows="2" placeholder="Notas adicionais...">${esc(e?.observacoes||'')}</textarea>
@@ -1000,16 +885,9 @@ const App = {
       const isEdit = type === 'editar-pessoa';
       const p = isEdit ? data.pessoas[payload] : null;
       el.innerHTML = `
-        <div class="modal-hdr">
-          <span class="modal-title">${isEdit?'Editar':'Nova'} Pessoa</span>
-          <button class="ico-btn" onclick="App.closeModal()">✕</button>
-        </div>
-        <div class="fg"><label class="fl">Nome</label>
-          <input class="fc" type="text" id="m-nome" placeholder="Nome completo" value="${esc(p?.nome||'')}">
-        </div>
-        <div class="fg"><label class="fl">Função / Papel no coletivo</label>
-          <input class="fc" type="text" id="m-funcao" placeholder="Ex: Coordenação, Comunicação, Finanças..." value="${esc(p?.funcao||'')}">
-        </div>
+        <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Nova'} Pessoa</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
+        <div class="fg"><label class="fl">Nome</label><input class="fc" type="text" id="m-nome" placeholder="Nome completo" value="${esc(p?.nome||'')}"></div>
+        <div class="fg"><label class="fl">Área / Setor</label><input class="fc" type="text" id="m-area" placeholder="Ex: Redação, Administrativo, Comunicação..." value="${esc(p?.area||'')}"></div>
         <div class="fg"><label class="fl">Status</label>
           <select class="fc" id="m-status">
             <option value="ativo"   ${(!p||p.status==='ativo')?'selected':''}>Ativo</option>
@@ -1025,28 +903,18 @@ const App = {
     /* ── adicionar material ── */
     else if (type === 'add-mat') {
       el.innerHTML = `
-        <div class="modal-hdr">
-          <span class="modal-title">Adicionar Material</span>
-          <button class="ico-btn" onclick="App.closeModal()">✕</button>
-        </div>
+        <div class="modal-hdr"><span class="modal-title">Adicionar Material</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
         <div class="mtabs">
-          <button class="mtab active" id="tab-link"   onclick="App.switchTab('link')">🔗 Link</button>
-          <button class="mtab"        id="tab-arq"    onclick="App.switchTab('arquivo')">📄 Arquivo</button>
+          <button class="mtab active" id="tab-link" onclick="App.switchTab('link')">🔗 Link</button>
+          <button class="mtab"        id="tab-arq"  onclick="App.switchTab('arquivo')">📄 Arquivo</button>
         </div>
         <div id="tf-link">
-          <div class="fg"><label class="fl">URL</label>
-            <input class="fc" type="url" id="m-url" placeholder="https://...">
-          </div>
-          <div class="fg"><label class="fl">Título</label>
-            <input class="fc" type="text" id="m-titulo" placeholder="Nome do link">
-          </div>
-          <div class="fg"><label class="fl">Descrição (opcional)</label>
-            <input class="fc" type="text" id="m-desc" placeholder="Breve descrição do conteúdo">
-          </div>
+          <div class="fg"><label class="fl">URL</label><input class="fc" type="url" id="m-url" placeholder="https://..."></div>
+          <div class="fg"><label class="fl">Título</label><input class="fc" type="text" id="m-titulo" placeholder="Nome do link"></div>
+          <div class="fg"><label class="fl">Descrição (opcional)</label><input class="fc" type="text" id="m-desc" placeholder="Breve descrição"></div>
         </div>
         <div id="tf-arq" style="display:none">
-          <div class="fg">
-            <label class="fl">Arquivo</label>
+          <div class="fg"><label class="fl">Arquivo</label>
             <label class="file-drop" for="m-file">
               <input type="file" id="m-file" onchange="App.onFileSelect(event)">
               <div class="file-drop-ico">📁</div>
@@ -1054,13 +922,9 @@ const App = {
               <div style="font-size:11px;margin-top:4px">Máximo recomendado: 5 MB</div>
             </label>
           </div>
-          <div class="fg"><label class="fl">Título personalizado (opcional)</label>
-            <input class="fc" type="text" id="m-titulo-arq" placeholder="Deixe em branco para usar o nome do arquivo">
-          </div>
+          <div class="fg"><label class="fl">Título personalizado (opcional)</label><input class="fc" type="text" id="m-titulo-arq" placeholder="Deixe em branco para usar o nome do arquivo"></div>
         </div>
-        <div id="warn-size" class="alert-w" style="display:none">
-          ⚠️ Arquivo grande. Para arquivos acima de 5 MB, prefira hospedar no Google Drive e inserir como link.
-        </div>
+        <div id="warn-size" class="alert-w" style="display:none">⚠️ Arquivo grande. Prefira hospedar no Google Drive e inserir como link.</div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
           <button class="btn btn-p" onclick="App.saveMat()">Salvar</button>
@@ -1071,8 +935,15 @@ const App = {
     setTimeout(() => { const f = el.querySelector('input,textarea,select'); if(f) f.focus(); }, 80);
   },
 
-  closeModal()        { document.getElementById('overlay').classList.remove('open'); },
-  overlayClick(e)     { if(e.target.id==='overlay') this.closeModal(); },
+  closeModal()    { document.getElementById('overlay').classList.remove('open'); },
+  overlayClick(e) { if(e.target.id==='overlay') this.closeModal(); },
+
+  preencheArea(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const area = opt?.dataset?.area || '';
+    const areaEl = document.getElementById('m-area');
+    if (areaEl && !areaEl.dataset.edited) areaEl.value = area;
+  },
 
   switchTab(tab) {
     this._tab = tab;
@@ -1095,43 +966,102 @@ const App = {
   saveReuniao(id = null) {
     const dt = document.getElementById('m-data')?.value;
     if (!dt) { alert('Informe a data.'); return; }
+    const parts = [...document.querySelectorAll('.part-chk:checked')].map(c => c.value);
     const data = DB.get();
-    const debate = document.getElementById('m-debate')?.value || '';
+    const obj = {
+      data: dt,
+      titulo:           document.getElementById('m-titulo')?.value?.trim() || '',
+      participantes:    parts,
+      relatoria:        document.getElementById('m-rel')?.value  || '',
+      proximaRelatoria: document.getElementById('m-prox')?.value || ''
+    };
     if (id) {
       const r = data.reunioes.find(x=>x.id===id);
-      if (r) { r.data = dt; r.debateCentral = debate; }
+      if (r) Object.assign(r, obj);
     } else {
-      data.reunioes.push({ id:uid(), data:dt, debateCentral:debate, encaminhamentos:[], materiais:[] });
+      data.reunioes.push({ id:uid(), ...obj, informes:[], pautas:[], encaminhamentos:[], materiais:[] });
     }
     DB.save(data); this.closeModal(); toast('Reunião salva!');
     this.go(id ? 'reuniao' : 'reunioes', id ? {id} : {});
   },
 
   delReuniao(id) {
-    if (!confirm('Excluir esta reunião e todos os encaminhamentos vinculados?')) return;
+    if (!confirm('Excluir esta reunião e todos os dados vinculados?')) return;
     const data = DB.get();
     data.reunioes = data.reunioes.filter(r=>r.id!==id);
     DB.save(data); toast('Reunião excluída.'); this.go('reunioes');
   },
 
+  saveInfome(rid, idx) {
+    const pessoaId = document.getElementById('m-pessoa')?.value;
+    if (!pessoaId) { alert('Selecione uma pessoa.'); return; }
+    const itensRaw = document.getElementById('m-itens')?.value || '';
+    const itens = itensRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+    if (!itens.length) { alert('Adicione ao menos um item.'); return; }
+    const data = DB.get();
+    const r = data.reunioes.find(x=>x.id===rid);
+    if (!r) return;
+    if (!r.informes) r.informes = [];
+    const inf = {
+      id:       idx>=0 ? (r.informes[idx]?.id||uid()) : uid(),
+      pessoaId,
+      area:     document.getElementById('m-area')?.value?.trim() || '',
+      itens
+    };
+    if (idx>=0) r.informes[idx] = inf; else r.informes.push(inf);
+    DB.save(data); this.closeModal(); toast('Informe salvo!'); this.go('reuniao',{id:rid});
+  },
+
+  delInfome(rid, idx) {
+    if (!confirm('Excluir este informe?')) return;
+    const data = DB.get();
+    const r = data.reunioes.find(x=>x.id===rid);
+    if (r) r.informes.splice(idx,1);
+    DB.save(data); toast('Excluído.'); this.go('reuniao',{id:rid});
+  },
+
+  savePauta(rid, idx) {
+    const titulo = document.getElementById('m-titulo')?.value?.trim();
+    if (!titulo) { alert('Informe o título da pauta.'); return; }
+    const data = DB.get();
+    const r = data.reunioes.find(x=>x.id===rid);
+    if (!r) return;
+    if (!r.pautas) r.pautas = [];
+    const p = {
+      id:    idx>=0 ? (r.pautas[idx]?.id||uid()) : uid(),
+      titulo,
+      notas: document.getElementById('m-notas')?.value?.trim() || ''
+    };
+    if (idx>=0) r.pautas[idx] = p; else r.pautas.push(p);
+    DB.save(data); this.closeModal(); toast('Pauta salva!'); this.go('reuniao',{id:rid});
+  },
+
+  delPauta(rid, idx) {
+    if (!confirm('Excluir esta pauta?')) return;
+    const data = DB.get();
+    const r = data.reunioes.find(x=>x.id===rid);
+    if (r) r.pautas.splice(idx,1);
+    DB.save(data); toast('Excluído.'); this.go('reuniao',{id:rid});
+  },
+
   saveEnc(rid, idx) {
     const desc = document.getElementById('m-desc')?.value?.trim();
     if (!desc) { alert('Informe a descrição.'); return; }
+    const resps = [...document.querySelectorAll('.resp-chk:checked')].map(c => c.value);
     const data = DB.get();
     const r = data.reunioes.find(x=>x.id===rid);
     if (!r) return;
     if (!r.encaminhamentos) r.encaminhamentos = [];
     const enc = {
-      id:          idx>=0 ? (r.encaminhamentos[idx]?.id||uid()) : uid(),
-      descricao:   desc,
-      responsavel: document.getElementById('m-resp')?.value  || '',
-      prazo:       document.getElementById('m-prazo')?.value || '',
-      status:      document.getElementById('m-status')?.value|| 'pendente',
-      observacoes: document.getElementById('m-obs')?.value   || '',
-      materiais:   idx>=0 ? (r.encaminhamentos[idx]?.materiais||[]) : []
+      id:           idx>=0 ? (r.encaminhamentos[idx]?.id||uid()) : uid(),
+      descricao:    desc,
+      responsaveis: resps,
+      prazo:        document.getElementById('m-prazo')?.value  || '',
+      status:       document.getElementById('m-status')?.value || 'pendente',
+      observacoes:  document.getElementById('m-obs')?.value    || '',
+      materiais:    idx>=0 ? (r.encaminhamentos[idx]?.materiais||[]) : []
     };
-    if (idx>=0) r.encaminhamentos[idx] = enc;
-    else        r.encaminhamentos.push(enc);
+    if (idx>=0) r.encaminhamentos[idx] = enc; else r.encaminhamentos.push(enc);
     DB.save(data); this.closeModal(); toast('Encaminhamento salvo!'); this.go('reuniao',{id:rid});
   },
 
@@ -1157,7 +1087,7 @@ const App = {
     const p = {
       id:     idx>=0 ? (data.pessoas[idx]?.id||uid()) : uid(),
       nome,
-      funcao: document.getElementById('m-funcao')?.value?.trim() || '',
+      area:   document.getElementById('m-area')?.value?.trim()   || '',
       status: document.getElementById('m-status')?.value         || 'ativo'
     };
     if (idx>=0) data.pessoas[idx] = p; else data.pessoas.push(p);
@@ -1166,8 +1096,7 @@ const App = {
 
   delPessoa(idx) {
     if (!confirm('Excluir esta pessoa?')) return;
-    const data = DB.get();
-    data.pessoas.splice(idx,1);
+    const data = DB.get(); data.pessoas.splice(idx,1);
     DB.save(data); toast('Excluído.'); this.go('pessoas');
   },
 
@@ -1177,19 +1106,15 @@ const App = {
   saveMat() {
     const payload = this._payload;
     const data    = DB.get();
-
     if (this._tab === 'arquivo') {
       if (!this._file) { alert('Selecione um arquivo.'); return; }
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const m = {
-          id:     uid(),
-          tipo:   'arquivo',
-          nome:   document.getElementById('m-titulo-arq')?.value?.trim() || this._file.name,
-          dados:  ev.target.result,
-          tamanho: this._file.size
-        };
-        this._attachMat(data, payload, m);
+        this._attachMat(data, payload, {
+          id:uid(), tipo:'arquivo',
+          nome: document.getElementById('m-titulo-arq')?.value?.trim() || this._file.name,
+          dados: ev.target.result, tamanho: this._file.size
+        });
         this._file = null;
       };
       reader.readAsDataURL(this._file);
@@ -1198,14 +1123,11 @@ const App = {
       if (!raw) { alert('Informe a URL.'); return; }
       const url = safeUrl(raw);
       if (!url) { alert('URL inválida. Use links com http:// ou https://'); return; }
-      const m = {
-        id:        uid(),
-        tipo:      'link',
-        url,
+      this._attachMat(data, payload, {
+        id:uid(), tipo:'link', url,
         titulo:    document.getElementById('m-titulo')?.value?.trim() || raw,
         descricao: document.getElementById('m-desc')?.value?.trim()   || ''
-      };
-      this._attachMat(data, payload, m);
+      });
     }
   },
 
@@ -1229,13 +1151,9 @@ const App = {
     const data = DB.get();
     const r    = data.reunioes.find(x=>x.id===rid);
     if (!r) return;
-    if (alvo === 'reuniao') {
-      (r.materiais||[]).splice(matIdx,1);
-    } else {
-      const e = r.encaminhamentos[encIdx];
-      if (e) (e.materiais||[]).splice(matIdx,1);
-    }
-    DB.save(data); toast('Material removido.'); this.go('reuniao',{id:rid});
+    if (alvo === 'reuniao') { (r.materiais||[]).splice(matIdx,1); }
+    else { const e = r.encaminhamentos[encIdx]; if(e) (e.materiais||[]).splice(matIdx,1); }
+    DB.save(data); toast('Removido.'); this.go('reuniao',{id:rid});
   },
 
   /* ── dados ── */
@@ -1244,18 +1162,20 @@ const App = {
     const f = e.target.files[0]; if(!f) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      try {
-        DB.import(ev.target.result);
-        toast('Dados importados com sucesso!');
-        this.go('dashboard');
-      } catch { alert('Arquivo inválido. Verifique se é um JSON exportado por este sistema.'); }
+      try { DB.import(ev.target.result); toast('Dados importados!'); this.go('dashboard'); }
+      catch { alert('Arquivo inválido.'); }
     };
     reader.readAsText(f); e.target.value = '';
   }
 };
 
-/* ── keyboard ── */
+/* ── teclado ── */
 document.addEventListener('keydown', e => { if(e.key==='Escape') App.closeModal(); });
+
+/* ── área: marcar como editado manualmente ── */
+document.addEventListener('input', e => {
+  if(e.target.id==='m-area') e.target.dataset.edited = '1';
+});
 
 /* ── init ── */
 App.go('dashboard');
