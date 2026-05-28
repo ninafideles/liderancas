@@ -367,7 +367,7 @@ function matchPessoa(data, name) {
 
 function parseRelatoria(text) {
   const MESES = {
-    'janeiro':'01','fevereiro':'02','marco':'03','março':'03','abril':'04',
+    'janeiro':'01','fevereiro':'02','marco':'03','marco':'03','abril':'04',
     'maio':'05','junho':'06','julho':'07','agosto':'08','setembro':'09',
     'outubro':'10','novembro':'11','dezembro':'12'
   };
@@ -378,186 +378,150 @@ function parseRelatoria(text) {
     informes:[], pautas:[], encaminhamentos:[]
   };
 
-  // Normaliza texto: remove \r, normaliza bullets e separadores
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-  let state = 'HEADER';
-  let currentInforme = null;
-  let currentPauta   = null;
+  // Normaliza string removendo acentos de forma segura (usando escapes Unicode)
+  const strip = (s) => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 
-  const pushInforme = () => {
-    if (currentInforme && (currentInforme.itens.length || currentInforme.pessoaName)) {
-      result.informes.push({ ...currentInforme });
-    }
-    currentInforme = null;
+  // Detecta se linha é cabeçalho de seção principal — tolera maiúsculas, dois-pontos, asteriscos
+  const SECTION_MAP = {
+    'informes':'INFORMES', 'informe':'INFORMES',
+    'pautas':'PAUTAS', 'pauta':'PAUTAS',
+    'encaminhamentos':'ENCAMINHAMENTOS', 'encaminhamento':'ENCAMINHAMENTOS'
+  };
+  const getSectionKey = (line) => {
+    const t = strip(line).replace(/[*#_:!\s]+$/, '').replace(/^[*#_!\s]+/, '');
+    return SECTION_MAP[t] || null;
   };
 
-  const pushPauta = () => {
-    if (!currentPauta || !currentPauta.titulo) { currentPauta = null; return; }
-    const existing = result.pautas.find(p => {
-      const a = p.titulo.toLowerCase().slice(0,12);
-      const b = currentPauta.titulo.toLowerCase().slice(0,12);
-      return a === b || p.titulo.toLowerCase() === currentPauta.titulo.toLowerCase();
-    });
-    if (existing) { existing.notas = currentPauta.notas.trim(); }
-    else result.pautas.push({ titulo: currentPauta.titulo, notas: currentPauta.notas.trim() });
-    currentPauta = null;
-  };
-
-  // Detecta seção principal (Informes / Pautas / Encaminhamentos) com flexibilidade
-  const isMainSection = (line) => {
-    const t = line.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    return /^(informes|pautas|encaminhamentos)$/.test(t);
-  };
-
-  // Bullet: -, •, ·, *, –, →, ▪, >
-  const isBullet = (line) => /^[-•·*–→▪>]\s/.test(line.trim());
-  const stripBullet = (line) => line.trim().replace(/^[-•·*–→▪>]\s*/,'').replace(/;\s*$/,'').trim();
-
-  // Linha "Pessoa I Área" ou "Pessoa | Área" ou "Pessoa / Área"
-  // Aceita tanto | quanto I (letra maiúscula usada como separador)
-  const isPersonLine = (line) => {
-    const t = line.trim();
-    // Deve ter separador I ou | ou / com texto dos dois lados
-    if (isBullet(t)) return false;
-    if (/^(Informes|Pautas|Encaminhamentos|RELATORIA|Próxim)/i.test(t)) return false;
-    // Padrão: Nome [I | / | \|] Área  — nome começa com maiúscula, sem dois pontos
-    return /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ][A-Za-záéíóúàâêôãõ\s]{1,30}\s+[I|\/]\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ].{1,50}$/.test(t);
-  };
-
-  // Título de seção nomeada (pauta com nome próprio)
-  const isNamedSection = (line) => {
-    const t = line.trim();
-    return t.length >= 3 && t.length < 80 &&
-           /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ("]/.test(t) &&
-           !isBullet(t) &&
-           !isPersonLine(t) &&
-           !/^(RELATORIA|Ler |Próxima|Próximo|Participantes)/i.test(t) &&
-           !t.includes(':');
-  };
-
-  // Tenta extrair responsável de texto de encaminhamento
-  // Ex: "Lucas: verificar orçamento" → responsável Lucas
-  // Ex: "Verificar (Lucas)" → responsável Lucas
-  const extractEncResp = (text) => {
-    const m1 = text.match(/^([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)?)\s*[:–-]\s*(.+)/);
-    if (m1 && m1[1].split(' ').length <= 2) return { resp: m1[1].trim(), desc: m1[2].trim() };
-    const m2 = text.match(/\(([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)\)/);
-    if (m2) return { resp: m2[1].trim(), desc: text.replace(m2[0],'').trim() };
-    return { resp: null, desc: text };
-  };
-
-  for (let raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-
-    // ── Transições de seção principal
-    if (isMainSection(line)) {
-      const key = line.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-      pushInforme(); pushPauta();
-      if (key === 'informes')         state = 'INFORMES';
-      else if (key === 'pautas')      state = 'PAUTAS_LIST';
-      else if (key === 'encaminhamentos') state = 'ENCAMINHAMENTOS';
-      continue;
-    }
-
-    // ── HEADER
-    if (state === 'HEADER') {
-      // Data: "09 de Abril de 2026"
-      const dm = line.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i);
-      if (dm) {
-        const [,day,month,year] = dm;
-        const mNorm = month.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-        const mn = MESES[mNorm];
-        if (mn) result.data = `${year}-${mn}-${day.padStart(2,'0')}`;
-      }
-      // Título após "|" na mesma linha da data
-      const tm = line.match(/[|｜]\s*(.+)/);
-      if (tm) result.titulo = tm[1].trim();
-      // Participantes
-      const pm = line.match(/participantes\s*:?\s*(.+)/i);
-      if (pm) {
-        result.participantesNomes = pm[1]
-          .split(/,|\s+e\s+|\s+e$/)
-          .map(s => s.trim()).filter(s => s.length > 1);
-      }
-      // Relatoria / Relatora
-      const rm = line.match(/relator[ia]*\s*:?\s*(.+)/i);
-      if (rm) result.relatoriaName = rm[1].trim();
-      // Próxima relatoria
-      const px = line.match(/pr[oó]xim[ao]\s*(?:relator[ia]*)?\s*:?\s*(.+)/i);
-      if (px) result.proximaRelatoriaName = px[1].trim();
-      continue;
-    }
-
-    // ── INFORMES
-    if (state === 'INFORMES') {
-      if (isPersonLine(line)) {
-        pushInforme();
-        // Separador: | ou I (letra) ou /
-        const parts = line.split(/\s+[I|\/]\s+/);
-        currentInforme = { pessoaName: parts[0].trim(), area: (parts[1]||'').trim(), itens: [] };
-        continue;
-      }
-      if (isBullet(line) && currentInforme) {
-        currentInforme.itens.push(stripBullet(line));
-        continue;
-      }
-      // Linha sem bullet pode ser continuação ou texto avulso
-      if (currentInforme && line.length > 3 && !isNamedSection(line)) {
-        currentInforme.itens.push(line);
-      }
-      continue;
-    }
-
-    // ── PAUTAS_LIST (lista de bullets de pauta)
-    if (state === 'PAUTAS_LIST') {
-      if (isBullet(line)) {
-        const titulo = stripBullet(line);
-        if (titulo) result.pautas.push({ titulo, notas: '' });
-        continue;
-      }
-      if (isNamedSection(line)) {
-        pushPauta();
-        state = 'NAMED_SECTION';
-        currentPauta = { titulo: line, notas: '' };
-        continue;
-      }
-      continue;
-    }
-
-    // ── NAMED_SECTION (detalhes de uma pauta específica)
-    if (state === 'NAMED_SECTION') {
-      if (isNamedSection(line)) {
-        pushPauta();
-        currentPauta = { titulo: line, notas: '' };
-        continue;
-      }
-      if (currentPauta) {
-        const item = stripBullet(line);
-        if (item) currentPauta.notas += (currentPauta.notas ? '\n' : '') + item;
-      }
-      continue;
-    }
-
-    // ── ENCAMINHAMENTOS
-    if (state === 'ENCAMINHAMENTOS') {
-      if (isBullet(line)) {
-        const txt = stripBullet(line);
-        if (txt) {
-          const { resp, desc } = extractEncResp(txt);
-          result.encaminhamentos.push({ descricao: desc, respName: resp });
-        }
-        continue;
-      }
-      // Linha sem bullet pode ser continuação do último encaminhamento
-      if (line.length > 5 && result.encaminhamentos.length > 0 && !isNamedSection(line)) {
-        result.encaminhamentos[result.encaminhamentos.length - 1].descricao += ' ' + line;
-      }
-    }
+  // Divide o texto em blocos por seção — abordagem mais robusta que state machine
+  const rawLines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  const chunks = [{ key:'HEADER', lines:[] }];
+  for (const line of rawLines) {
+    const sec = getSectionKey(line);
+    if (sec) chunks.push({ key:sec, lines:[] });
+    else chunks[chunks.length-1].lines.push(line);
   }
 
-  pushInforme();
-  pushPauta();
+  // ── HEADER
+  for (const line of (chunks.find(c=>c.key==='HEADER')?.lines || [])) {
+    const t = line.trim();
+    if (!t) continue;
+    const dm = t.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i);
+    if (dm) {
+      const mn = MESES[strip(dm[2])];
+      if (mn) result.data = `${dm[3]}-${mn}-${dm[1].padStart(2,'0')}`;
+    }
+    const sep = t.match(/[|｜]\s*(.+)/);
+    if (sep) result.titulo = sep[1].trim();
+    const pm = t.match(/participantes\s*:?\s*(.+)/i);
+    if (pm) result.participantesNomes = pm[1].split(/,|\s+e\s+/).map(s=>s.trim()).filter(s=>s.length>1);
+    const rm = t.match(/relator[ia]*\s*:?\s*(.+)/i);
+    if (rm && !/pr[oó]xim/i.test(t)) result.relatoriaName = rm[1].trim();
+    const px = t.match(/pr[oó]xim[ao].*?:?\s*(.+)/i);
+    if (px) result.proximaRelatoriaName = px[1].trim();
+  }
+
+  // ── INFORMES
+  // Detecta linha de pessoa: "Nome I Área" ou "Nome | Área" ou "Nome / Área"
+  // O separador pode ser I (letra), | (pipe), / (barra), ou variantes Unicode visuais
+  const personSep = /\s+[|I\/｜∣│]\s+/;
+  const isPersonLine = (t) => {
+    if (/^[-•·*]/.test(t)) return false;
+    if (!personSep.test(t)) return false;
+    const parts = t.split(personSep);
+    if (parts.length < 2) return false;
+    const nome = parts[0].trim();
+    // Nome: 1-3 palavras, começa com maiúscula
+    return /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(nome) && nome.split(/\s+/).length <= 3;
+  };
+
+  const informeChunk = chunks.find(c=>c.key==='INFORMES');
+  if (informeChunk) {
+    let curNome='', curArea='', curItens=[];
+    const flushInforme = () => {
+      if (curNome) result.informes.push({ pessoaName:curNome, area:curArea, itens:[...curItens] });
+      curNome=''; curArea=''; curItens=[];
+    };
+    for (const raw of informeChunk.lines) {
+      const t = raw.trim();
+      if (!t) continue;
+      if (isPersonLine(t)) {
+        flushInforme();
+        const parts = t.split(personSep);
+        curNome = parts[0].trim();
+        curArea = parts.slice(1).join(' ').trim();
+        continue;
+      }
+      if (curNome) {
+        const item = t.replace(/^[-•·*→]\s*/,'').trim();
+        if (item) curItens.push(item);
+      }
+    }
+    flushInforme();
+  }
+
+  // ── PAUTAS
+  const pautaChunk = chunks.find(c=>c.key==='PAUTAS');
+  if (pautaChunk) {
+    let curTitulo='', curNotas=[];
+    const flushPauta = () => {
+      if (curTitulo) result.pautas.push({ titulo:curTitulo, notas:curNotas.join('\n') });
+      curTitulo=''; curNotas=[];
+    };
+    for (const raw of pautaChunk.lines) {
+      const t = raw.trim();
+      if (!t) continue;
+      if (/^[-•·*]\s/.test(t) && !curTitulo) {
+        // Bullet sem pauta aberta = novo título de pauta
+        curTitulo = t.replace(/^[-•·*]\s*/,'').trim();
+        continue;
+      }
+      if (/^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(t) && !/^[-•·*]/.test(t) && !personSep.test(t)) {
+        // Linha capitulada sem bullet = seção nomeada de pauta
+        flushPauta();
+        curTitulo = t;
+        continue;
+      }
+      if (curTitulo) {
+        const item = t.replace(/^[-•·*→]\s*/,'').trim();
+        if (item) curNotas.push(item);
+      }
+    }
+    flushPauta();
+  }
+
+  // ── ENCAMINHAMENTOS
+  const encChunk = chunks.find(c=>c.key==='ENCAMINHAMENTOS');
+  if (encChunk) {
+    let curEnc = null;
+    const flushEnc = () => {
+      if (curEnc && curEnc.descricao.trim()) result.encaminhamentos.push(curEnc);
+      curEnc = null;
+    };
+    for (const raw of encChunk.lines) {
+      const t = raw.trim();
+      if (!t) continue;
+      // Qualquer bullet ou item numerado = novo encaminhamento
+      if (/^[-•·*→▪>]\s/.test(t) || /^\d+[.)]\s/.test(t)) {
+        flushEnc();
+        let txt = t.replace(/^[-•·*→▪>]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/;\s*$/,'').trim();
+        let respName = null;
+        // "Nome: descrição" → extrai responsável
+        const m1 = txt.match(/^([A-ZÁÉÍÓÚÀÂÊÔÃÕ][\wáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ]+(?:\s+[\wáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ]+)?)\s*:\s*(.+)/);
+        if (m1 && m1[1].split(/\s+/).length <= 2) { respName=m1[1]; txt=m1[2].trim(); }
+        // "(Nome)" → extrai responsável
+        if (!respName) {
+          const m2 = txt.match(/\(([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)\)/);
+          if (m2) { respName=m2[1]; txt=txt.replace(m2[0],'').trim(); }
+        }
+        curEnc = { descricao:txt, respName };
+        continue;
+      }
+      // Linha sem bullet = continuação do encaminhamento anterior
+      if (curEnc && t.length > 2) curEnc.descricao += ' ' + t.replace(/;\s*$/,'');
+    }
+    flushEnc();
+  }
+
   return result;
 }
 
