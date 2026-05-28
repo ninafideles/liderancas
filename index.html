@@ -449,12 +449,13 @@ function parseRelatoria(text) {
     return /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(nome) && nome.split(/\s+/).length <= 3;
   };
 
+  // ── INFORMES — captura texto corrido por pessoa, sem granularidade
   const informeChunk = chunks.find(c=>c.key==='INFORMES');
   if (informeChunk) {
-    let curNome='', curArea='', curItens=[];
+    let curNome='', curArea='', curLinhas=[];
     const flushInforme = () => {
-      if (curNome) result.informes.push({ pessoaName:curNome, area:curArea, itens:[...curItens] });
-      curNome=''; curArea=''; curItens=[];
+      if (curNome) result.informes.push({ pessoaName:curNome, area:curArea, texto:curLinhas.join('\n') });
+      curNome=''; curArea=''; curLinhas=[];
     };
     for (const raw of informeChunk.lines) {
       const t = raw.trim();
@@ -467,38 +468,40 @@ function parseRelatoria(text) {
         continue;
       }
       if (curNome) {
-        const item = t.replace(/^[-•·*→]\s*/,'').trim();
-        if (item) curItens.push(item);
+        // Remove bullet se houver, mas mantém o texto corrido
+        const linha = t.replace(/^[-•·*→]\s*/,'').trim();
+        if (linha) curLinhas.push(linha);
       }
     }
     flushInforme();
   }
 
-  // ── PAUTAS
+  // ── PAUTAS — captura texto corrido por pauta
   const pautaChunk = chunks.find(c=>c.key==='PAUTAS');
   if (pautaChunk) {
-    let curTitulo='', curNotas=[];
+    let curTitulo='', curLinhas=[];
     const flushPauta = () => {
-      if (curTitulo) result.pautas.push({ titulo:curTitulo, notas:curNotas.join('\n') });
-      curTitulo=''; curNotas=[];
+      if (curTitulo) result.pautas.push({ titulo:curTitulo, notas:curLinhas.join('\n') });
+      curTitulo=''; curLinhas=[];
     };
     for (const raw of pautaChunk.lines) {
       const t = raw.trim();
-      if (!t) continue;
+      if (!t) { if (curTitulo) curLinhas.push(''); continue; }
       if (/^[-•·*]\s/.test(t) && !curTitulo) {
-        // Bullet sem pauta aberta = novo título de pauta
+        // Bullet de nível raiz sem pauta aberta = título da nova pauta
         curTitulo = t.replace(/^[-•·*]\s*/,'').trim();
         continue;
       }
       if (/^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(t) && !/^[-•·*]/.test(t) && !personSep.test(t)) {
-        // Linha capitulada sem bullet = seção nomeada de pauta
+        // Linha capitulada = nova seção de pauta
         flushPauta();
         curTitulo = t;
         continue;
       }
       if (curTitulo) {
-        const item = t.replace(/^[-•·*→]\s*/,'').trim();
-        if (item) curNotas.push(item);
+        // Tudo vira texto corrido — remove bullet se houver
+        const linha = t.replace(/^[-•·*→]\s*/,'').trim();
+        if (linha) curLinhas.push(linha);
       }
     }
     flushPauta();
@@ -815,7 +818,12 @@ const App = {
                 <button class="ico-btn" style="color:var(--err)" onclick="App.delInfome('${rid}',${idx})">🗑️</button>
               </div>
             </div>
-            <ul class="informe-itens">${(inf.itens||[]).map(it=>`<li>${esc(it)}</li>`).join('')}</ul>
+            ${inf.texto
+              ? `<p style="font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap">${esc(inf.texto)}</p>`
+              : (inf.itens||[]).length
+                ? `<ul class="informe-itens">${inf.itens.map(it=>`<li>${esc(it)}</li>`).join('')}</ul>`
+                : '<p style="font-size:13px;color:var(--muted);font-style:italic">Sem conteúdo registrado.</p>'
+            }
           </div>`;}).join('')}
       </div>
 
@@ -1080,8 +1088,8 @@ const App = {
           </select></div>
           <div class="fg"><label class="fl">Área</label><input class="fc" type="text" id="m-area" placeholder="Ex: Redação" value="${esc(inf?.area||'')}"></div>
         </div>
-        <div class="fg"><label class="fl">Itens (um por linha)</label>
-          <textarea class="fc" id="m-itens" rows="6" placeholder="Item 1&#10;Item 2&#10;Item 3">${esc((inf?.itens||[]).join('\n'))}</textarea>
+        <div class="fg"><label class="fl">Texto do informe</label>
+          <textarea class="fc" id="m-itens" rows="6" placeholder="Escreva livremente o conteúdo do informe...">${esc(inf?.texto||(inf?.itens||[]).join('\n'))}</textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
@@ -1337,7 +1345,7 @@ const App = {
     // 3. Resolver informes
     const informes = parsed.informes.map(inf => {
       const p = ensurePessoa(inf.pessoaName);
-      return { id:uid(), pessoaId:p?.id||'', area:inf.area, itens:inf.itens };
+      return { id:uid(), pessoaId:p?.id||'', area:inf.area, texto:inf.texto||'', itens:inf.itens||[] };
     });
 
     // 4. Pautas
@@ -1393,11 +1401,11 @@ const App = {
   saveInfome(rid,idx) {
     const pessoaId=document.getElementById('m-pessoa')?.value;
     if (!pessoaId) { alert('Selecione uma pessoa.'); return; }
-    const itens=(document.getElementById('m-itens')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
-    if (!itens.length) { alert('Adicione ao menos um item.'); return; }
+    const texto=(document.getElementById('m-itens')?.value||'').trim();
+    if (!texto) { alert('Escreva o conteúdo do informe.'); return; }
     const data=DB.get(), r=data.reunioes.find(x=>x.id===rid); if(!r) return;
     if (!r.informes) r.informes=[];
-    const inf={ id:idx>=0?(r.informes[idx]?.id||uid()):uid(), pessoaId, area:document.getElementById('m-area')?.value?.trim()||'', itens };
+    const inf={ id:idx>=0?(r.informes[idx]?.id||uid()):uid(), pessoaId, area:document.getElementById('m-area')?.value?.trim()||'', texto, itens:[] };
     if (idx>=0) r.informes[idx]=inf; else r.informes.push(inf);
     DB.save(data); this.closeModal(); toast('Informe salvo!'); this.go('reuniao',{id:rid});
   },
