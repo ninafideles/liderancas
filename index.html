@@ -1251,8 +1251,8 @@ const App = {
       ${parsed.informes.length ? `<div class="prev-section">
         <div class="prev-section-title">📣 ${parsed.informes.length} Informe(s) detectado(s)</div>
         ${informesPessoas.map(inf=>`<div class="prev-item">
-          <div class="prev-item-title">${esc(inf.pessoaName)}${inf.area?` <span style="font-weight:400;color:var(--muted)">· ${esc(inf.area)}</span>`:''}</div>
-          <div class="prev-item-sub">${inf.itens.length} item(ns)</div>
+          <div class="prev-item-title">${inf.pessoaName ? esc(inf.pessoaName) : 'Informes da reunião'}${inf.area?` <span style="font-weight:400;color:var(--muted)">· ${esc(inf.area)}</span>`:''}</div>
+          <div class="prev-item-sub">${inf.texto ? esc(inf.texto).slice(0,80)+'…' : ((inf.itens||[]).length + ' item(ns)')}</div>
         </div>`).join('')}
       </div>` : ''}
 
