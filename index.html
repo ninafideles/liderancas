@@ -196,15 +196,43 @@
 
     #toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--pri); color:#fff; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:999; white-space:nowrap; }
     #toast.show { opacity:1; }
+
+    /* ── Login ── */
+    #login-screen { position:fixed; inset:0; background:var(--pri); display:flex; align-items:center; justify-content:center; z-index:9999; padding:16px; }
+    #login-screen.hidden { display:none; }
+    .login-box { background:#fff; border-radius:16px; padding:36px 32px; width:100%; max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,.35); }
+    .login-logo { font-size:44px; text-align:center; margin-bottom:10px; }
+    .login-title { font-size:20px; font-weight:800; color:var(--pri); text-align:center; margin-bottom:4px; }
+    .login-sub { font-size:13px; color:var(--muted); text-align:center; margin-bottom:28px; }
+    .login-err { background:#ffe0e0; color:#8b1414; border:1px solid #f5b8b8; border-radius:7px; padding:9px 13px; font-size:13px; margin-bottom:14px; display:none; }
+    .login-err.show { display:block; }
+    .pend-card { border-left:4px solid var(--warn); background:#fffdf0; border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:8px; }
+    .pend-card:last-child { margin-bottom:0; }
+    .enc-reuniao { font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:600; }
   </style>
 </head>
 <body>
 
+<!-- TELA DE LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🤝</div>
+    <div class="login-title">Coletivo de Lideranças</div>
+    <div class="login-sub">Sistema restrito ao coletivo</div>
+    <div class="login-err" id="login-err">Senha incorreta. Tente novamente.</div>
+    <div class="fg">
+      <label class="fl">Senha de acesso</label>
+      <input class="fc" type="password" id="login-pw" placeholder="••••••••••" onkeydown="if(event.key==='Enter')AUTH.login()">
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="AUTH.login()">Entrar</button>
+  </div>
+</div>
+
 <header>
   <h1>🤝 Coletivo de Lideranças</h1>
   <div class="hdr-actions">
-    <button class="hdr-btn" onclick="App.exportData()">⬇ Exportar</button>
-    <button class="hdr-btn" onclick="document.getElementById('fi').click()">⬆ Importar</button>
+    <button class="hdr-btn" onclick="App.openModal('config')">⚙ Config</button>
+    <button class="hdr-btn" onclick="AUTH.logout()">Sair</button>
     <input type="file" id="fi" accept=".json" style="display:none" onchange="App.importData(event)">
   </div>
 </header>
@@ -224,6 +252,44 @@
 <div id="toast"></div>
 
 <script>
+/* ============================================================
+   AUTH — Controle de acesso
+   Senha padrão: liderancas2026
+   Para alterar: use o menu Config dentro do sistema
+============================================================ */
+const AUTH = {
+  DEFAULT_PW: 'liderancas2026',
+  getPassword() { return localStorage.getItem('ldr_pw') || this.DEFAULT_PW; },
+  check()  { return sessionStorage.getItem('ldr_auth') === '1'; },
+  login() {
+    const pw = document.getElementById('login-pw')?.value || '';
+    if (pw === this.getPassword()) {
+      sessionStorage.setItem('ldr_auth','1');
+      document.getElementById('login-screen').classList.add('hidden');
+      App.go('dashboard');
+    } else {
+      const err = document.getElementById('login-err');
+      err.classList.add('show');
+      const inp = document.getElementById('login-pw');
+      inp.value = ''; inp.focus();
+      setTimeout(() => err.classList.remove('show'), 3000);
+    }
+  },
+  logout() {
+    sessionStorage.removeItem('ldr_auth');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+  },
+  changePassword(old, nw, nw2) {
+    if (old !== this.getPassword()) return 'Senha atual incorreta.';
+    if (!nw || nw.length < 6)     return 'Nova senha deve ter ao menos 6 caracteres.';
+    if (nw !== nw2)                return 'As senhas não coincidem.';
+    localStorage.setItem('ldr_pw', nw);
+    return null;
+  }
+};
+
 /* ============================================================
    UTILS
 ============================================================ */
@@ -312,14 +378,14 @@ function parseRelatoria(text) {
     informes:[], pautas:[], encaminhamentos:[]
   };
 
-  const lines = text.split('\n');
+  // Normaliza texto: remove \r, normaliza bullets e separadores
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
   let state = 'HEADER';
-  let currentInforme  = null;
-  let currentPauta    = null;
-  let headerDone      = false;
+  let currentInforme = null;
+  let currentPauta   = null;
 
   const pushInforme = () => {
-    if (currentInforme && currentInforme.itens.length) {
+    if (currentInforme && (currentInforme.itens.length || currentInforme.pessoaName)) {
       result.informes.push({ ...currentInforme });
     }
     currentInforme = null;
@@ -327,48 +393,71 @@ function parseRelatoria(text) {
 
   const pushPauta = () => {
     if (!currentPauta || !currentPauta.titulo) { currentPauta = null; return; }
-    // Merge com entrada existente da lista de pautas se título coincide
-    const existing = result.pautas.find(p =>
-      p.titulo.toLowerCase() === currentPauta.titulo.toLowerCase() ||
-      currentPauta.titulo.toLowerCase().includes(p.titulo.toLowerCase().slice(0,10)) ||
-      p.titulo.toLowerCase().includes(currentPauta.titulo.toLowerCase().slice(0,10))
-    );
-    if (existing) existing.notas = currentPauta.notas.trim();
+    const existing = result.pautas.find(p => {
+      const a = p.titulo.toLowerCase().slice(0,12);
+      const b = currentPauta.titulo.toLowerCase().slice(0,12);
+      return a === b || p.titulo.toLowerCase() === currentPauta.titulo.toLowerCase();
+    });
+    if (existing) { existing.notas = currentPauta.notas.trim(); }
     else result.pautas.push({ titulo: currentPauta.titulo, notas: currentPauta.notas.trim() });
     currentPauta = null;
   };
 
-  const isSectionHeader = (line) => /^(informes|pautas|encaminhamentos)$/i.test(line.trim());
-  const isBullet        = (line) => /^[-•·]\s/.test(line.trim());
-  const isPersonLine    = (line) => {
-    // "Lucas I Redação" or "Monyse | Redação"
-    return /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ][^-•\n]{1,35}\s*[I|\/]\s*[A-ZÁÉÍÓÚÀÂÊÔÃÕ].{1,30}$/.test(line.trim()) &&
-           !isBullet(line);
+  // Detecta seção principal (Informes / Pautas / Encaminhamentos) com flexibilidade
+  const isMainSection = (line) => {
+    const t = line.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return /^(informes|pautas|encaminhamentos)$/.test(t);
   };
-  const isCapTitle      = (line) => {
+
+  // Bullet: -, •, ·, *, –, →, ▪, >
+  const isBullet = (line) => /^[-•·*–→▪>]\s/.test(line.trim());
+  const stripBullet = (line) => line.trim().replace(/^[-•·*–→▪>]\s*/,'').replace(/;\s*$/,'').trim();
+
+  // Linha "Pessoa I Área" ou "Pessoa | Área" ou "Pessoa / Área"
+  // Aceita tanto | quanto I (letra maiúscula usada como separador)
+  const isPersonLine = (line) => {
     const t = line.trim();
-    return t.length > 1 && t.length < 90 &&
-           /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ(]/.test(t) &&
-           !isBullet(t) && !t.includes(':') &&
-           !/^(RELATORIA|RELATÓRIO|Ler |Próxima|Próximo)/i.test(t);
+    // Deve ter separador I ou | ou / com texto dos dois lados
+    if (isBullet(t)) return false;
+    if (/^(Informes|Pautas|Encaminhamentos|RELATORIA|Próxim)/i.test(t)) return false;
+    // Padrão: Nome [I | / | \|] Área  — nome começa com maiúscula, sem dois pontos
+    return /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ][A-Za-záéíóúàâêôãõ\s]{1,30}\s+[I|\/]\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ].{1,50}$/.test(t);
+  };
+
+  // Título de seção nomeada (pauta com nome próprio)
+  const isNamedSection = (line) => {
+    const t = line.trim();
+    return t.length >= 3 && t.length < 80 &&
+           /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ("]/.test(t) &&
+           !isBullet(t) &&
+           !isPersonLine(t) &&
+           !/^(RELATORIA|Ler |Próxima|Próximo|Participantes)/i.test(t) &&
+           !t.includes(':');
+  };
+
+  // Tenta extrair responsável de texto de encaminhamento
+  // Ex: "Lucas: verificar orçamento" → responsável Lucas
+  // Ex: "Verificar (Lucas)" → responsável Lucas
+  const extractEncResp = (text) => {
+    const m1 = text.match(/^([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)?)\s*[:–-]\s*(.+)/);
+    if (m1 && m1[1].split(' ').length <= 2) return { resp: m1[1].trim(), desc: m1[2].trim() };
+    const m2 = text.match(/\(([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)\)/);
+    if (m2) return { resp: m2[1].trim(), desc: text.replace(m2[0],'').trim() };
+    return { resp: null, desc: text };
   };
 
   for (let raw of lines) {
     const line = raw.trim();
     if (!line) continue;
 
-    // ── Transições de seção
-    if (/^informes$/i.test(line)) {
+    // ── Transições de seção principal
+    if (isMainSection(line)) {
+      const key = line.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
       pushInforme(); pushPauta();
-      state = 'INFORMES'; continue;
-    }
-    if (/^pautas$/i.test(line)) {
-      pushInforme(); pushPauta();
-      state = 'PAUTAS_LIST'; continue;
-    }
-    if (/^encaminhamentos$/i.test(line)) {
-      pushInforme(); pushPauta();
-      state = 'ENCAMINHAMENTOS'; continue;
+      if (key === 'informes')         state = 'INFORMES';
+      else if (key === 'pautas')      state = 'PAUTAS_LIST';
+      else if (key === 'encaminhamentos') state = 'ENCAMINHAMENTOS';
+      continue;
     }
 
     // ── HEADER
@@ -381,22 +470,21 @@ function parseRelatoria(text) {
         const mn = MESES[mNorm];
         if (mn) result.data = `${year}-${mn}-${day.padStart(2,'0')}`;
       }
-      // Título após "|"
+      // Título após "|" na mesma linha da data
       const tm = line.match(/[|｜]\s*(.+)/);
       if (tm) result.titulo = tm[1].trim();
-
       // Participantes
       const pm = line.match(/participantes\s*:?\s*(.+)/i);
       if (pm) {
         result.participantesNomes = pm[1]
-          .split(/,|\se\s|\se$/)
+          .split(/,|\s+e\s+|\s+e$/)
           .map(s => s.trim()).filter(s => s.length > 1);
       }
-      // Relatoria
-      const rm = line.match(/relatoria\s*:?\s*(.+)/i);
+      // Relatoria / Relatora
+      const rm = line.match(/relator[ia]*\s*:?\s*(.+)/i);
       if (rm) result.relatoriaName = rm[1].trim();
-      // Próxima
-      const px = line.match(/pr[oó]xima\s*:?\s*(.+)/i);
+      // Próxima relatoria
+      const px = line.match(/pr[oó]xim[ao]\s*(?:relator[ia]*)?\s*:?\s*(.+)/i);
       if (px) result.proximaRelatoriaName = px[1].trim();
       continue;
     }
@@ -405,29 +493,30 @@ function parseRelatoria(text) {
     if (state === 'INFORMES') {
       if (isPersonLine(line)) {
         pushInforme();
-        const parts = line.split(/\s*[I|\/]\s*/);
-        currentInforme = { pessoaName: parts[0].trim(), area: parts.slice(1).join(' ').trim(), itens: [] };
+        // Separador: | ou I (letra) ou /
+        const parts = line.split(/\s+[I|\/]\s+/);
+        currentInforme = { pessoaName: parts[0].trim(), area: (parts[1]||'').trim(), itens: [] };
         continue;
       }
       if (isBullet(line) && currentInforme) {
-        currentInforme.itens.push(line.replace(/^[-•·]\s*/,'').trim());
+        currentInforme.itens.push(stripBullet(line));
         continue;
       }
-      if (!isBullet(line) && !isPersonLine(line) && currentInforme) {
-        // Linha de contexto sem bullet — adicionar ao último item ou como item
-        if (line.length > 3) currentInforme.itens.push(line);
+      // Linha sem bullet pode ser continuação ou texto avulso
+      if (currentInforme && line.length > 3 && !isNamedSection(line)) {
+        currentInforme.itens.push(line);
       }
       continue;
     }
 
-    // ── PAUTAS_LIST
+    // ── PAUTAS_LIST (lista de bullets de pauta)
     if (state === 'PAUTAS_LIST') {
       if (isBullet(line)) {
-        const title = line.replace(/^[-•·]\s*/,'').trim();
-        if (title) result.pautas.push({ titulo: title, notas: '' });
+        const titulo = stripBullet(line);
+        if (titulo) result.pautas.push({ titulo, notas: '' });
         continue;
       }
-      if (isCapTitle(line)) {
+      if (isNamedSection(line)) {
         pushPauta();
         state = 'NAMED_SECTION';
         currentPauta = { titulo: line, notas: '' };
@@ -436,15 +525,15 @@ function parseRelatoria(text) {
       continue;
     }
 
-    // ── NAMED_SECTION (detalhe de cada pauta)
+    // ── NAMED_SECTION (detalhes de uma pauta específica)
     if (state === 'NAMED_SECTION') {
-      if (isCapTitle(line) && !isBullet(line)) {
+      if (isNamedSection(line)) {
         pushPauta();
         currentPauta = { titulo: line, notas: '' };
         continue;
       }
       if (currentPauta) {
-        const item = line.replace(/^[-•·]\s*/,'').trim();
+        const item = stripBullet(line);
         if (item) currentPauta.notas += (currentPauta.notas ? '\n' : '') + item;
       }
       continue;
@@ -453,13 +542,16 @@ function parseRelatoria(text) {
     // ── ENCAMINHAMENTOS
     if (state === 'ENCAMINHAMENTOS') {
       if (isBullet(line)) {
-        const enc = line.replace(/^[-•·]\s*/,'').replace(/;\s*$/,'').trim();
-        if (enc) result.encaminhamentos.push(enc);
+        const txt = stripBullet(line);
+        if (txt) {
+          const { resp, desc } = extractEncResp(txt);
+          result.encaminhamentos.push({ descricao: desc, respName: resp });
+        }
         continue;
       }
-      // Linha sem bullet no final — pode ser continuação de enc ou contexto
-      if (line.length > 5 && result.encaminhamentos.length > 0 && !isCapTitle(line)) {
-        result.encaminhamentos[result.encaminhamentos.length - 1] += ' ' + line.replace(/;\s*$/,'');
+      // Linha sem bullet pode ser continuação do último encaminhamento
+      if (line.length > 5 && result.encaminhamentos.length > 0 && !isNamedSection(line)) {
+        result.encaminhamentos[result.encaminhamentos.length - 1].descricao += ' ' + line;
       }
     }
   }
@@ -756,32 +848,71 @@ const App = {
   /* ── ENCAMINHAMENTOS ── */
   vEncs(data) {
     const fs=this.filters.status, fp=this.filters.pessoa;
-    let all=data.reunioes.flatMap(r=>(r.encaminhamentos||[]).map((e,idx)=>({...e,_rid:r.id,_rdata:r.data,_idx:idx})));
-    if (fs==='atrasado') all=all.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo));
-    else if (fs) all=all.filter(e=>e.status===fs);
-    if (fp) all=all.filter(e=>(e.responsaveis||[]).includes(fp));
-    all.sort((a,b)=>{if(!a.prazo)return 1;if(!b.prazo)return -1;return new Date(a.prazo)-new Date(b.prazo);});
+    const allEncs=data.reunioes.flatMap(r=>(r.encaminhamentos||[]).map((e,idx)=>({...e,_rid:r.id,_rdata:r.data,_rtit:r.titulo,_idx:idx})));
+
+    const pendentes=allEncs.filter(e=>e.status==='pendente'||e.status==='em_andamento');
+    const atrasados=pendentes.filter(e=>isLate(e.prazo));
+
+    let filtered=[...allEncs];
+    if (fs==='atrasado') filtered=filtered.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo));
+    else if (fs==='pendente_aberto') filtered=filtered.filter(e=>e.status==='pendente'||e.status==='em_andamento');
+    else if (fs) filtered=filtered.filter(e=>e.status===fs);
+    if (fp) filtered=filtered.filter(e=>(e.responsaveis||[]).includes(fp));
+    filtered.sort((a,b)=>{if(!a.prazo)return 1;if(!b.prazo)return -1;return new Date(a.prazo)-new Date(b.prazo);});
+
     const byP=data.pessoas.map(p=>{
-      const mine=data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>(e.responsaveis||[]).includes(p.id));
-      return{...p,tot:mine.length,ok:mine.filter(e=>e.status==='concluido').length};
+      const mine=allEncs.filter(e=>(e.responsaveis||[]).includes(p.id));
+      return{...p,tot:mine.length,ok:mine.filter(e=>e.status==='concluido').length,open:mine.filter(e=>e.status==='pendente'||e.status==='em_andamento').length};
     }).filter(p=>p.tot>0);
+
     return `
       <div class="ph"><span class="pt">Encaminhamentos</span></div>
+
+      ${pendentes.length ? `<div class="card" style="margin-bottom:14px;border-top:3px solid var(--warn)">
+        <div class="card-hdr">
+          <span class="card-title">⏳ Pendentes não resolvidos</span>
+          <span class="badge b-pend">${pendentes.length}</span>
+        </div>
+        ${atrasados.length?`<div style="background:#ffe0e0;color:#8b1414;border-radius:7px;padding:8px 12px;font-size:12px;font-weight:700;margin-bottom:12px">⚠️ ${atrasados.length} com prazo vencido</div>`:''}
+        ${pendentes.slice(0,10).map(e=>{
+          const resps=getNomes(data,e.responsaveis||[]);
+          return`<div class="pend-card">
+            <div class="enc-reuniao">📅 ${fmtDate(e._rdata)}${e._rtit?' · '+esc(e._rtit):''}</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:5px">${esc(e.descricao||'').slice(0,100)}${(e.descricao||'').length>100?'…':''}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px">
+              ${resps?`<span style="color:var(--muted)">👤 ${esc(resps)}</span>`:'<span style="color:var(--err)">👤 Sem responsável</span>'}
+              ${e.prazo?`<span style="color:var(--muted)">${isLate(e.prazo)?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
+              ${badgeStatus(e.status,e.prazo)}
+              <button class="btn btn-o btn-xs" onclick="App.go('reuniao',{id:'${e._rid}'})">Abrir →</button>
+            </div>
+          </div>`;
+        }).join('')}
+        ${pendentes.length>10?`<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">+ ${pendentes.length-10} outros — filtre abaixo</p>`:''}
+      </div>`
+      : `<div class="card" style="margin-bottom:14px;border-top:3px solid var(--ok)">
+          <div style="text-align:center;padding:10px;font-size:13px;color:var(--ok);font-weight:700">✅ Todos os encaminhamentos estão resolvidos!</div>
+         </div>`}
+
       ${byP.length?`<div class="card" style="margin-bottom:14px">
         <div class="card-title" style="margin-bottom:14px">Distribuição por pessoa</div>
         ${byP.map(p=>{const pct=p.tot?Math.round(p.ok/p.tot*100):0;return`<div class="prog-wrap">
-          <div class="prog-lbl"><span><strong>${esc(p.nome)}</strong>${p.area?` · ${esc(p.area)}`:''} — ${p.tot} enc.</span><span>${p.ok} concluídos (${pct}%)</span></div>
+          <div class="prog-lbl">
+            <span><strong>${esc(p.nome)}</strong>${p.area?` · ${esc(p.area)}`:''} — ${p.tot} enc.</span>
+            <span>${p.ok} concluídos · ${p.open} em aberto (${pct}%)</span>
+          </div>
           <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
         </div>`;}).join('')}
       </div>`:''}
+
       <div class="fbar">
         <select class="fc" onchange="App.setFilter('status',this.value)">
           <option value="" ${!fs?'selected':''}>Todos os status</option>
-          <option value="pendente"    ${fs==='pendente'?'selected':''}>Pendente</option>
-          <option value="em_andamento"${fs==='em_andamento'?'selected':''}>Em andamento</option>
-          <option value="concluido"   ${fs==='concluido'?'selected':''}>Concluído</option>
-          <option value="cancelado"   ${fs==='cancelado'?'selected':''}>Cancelado</option>
-          <option value="atrasado"    ${fs==='atrasado'?'selected':''}>Atrasados</option>
+          <option value="pendente_aberto" ${fs==='pendente_aberto'?'selected':''}>Em aberto (todos)</option>
+          <option value="pendente"     ${fs==='pendente'?'selected':''}>Pendente</option>
+          <option value="em_andamento" ${fs==='em_andamento'?'selected':''}>Em andamento</option>
+          <option value="concluido"    ${fs==='concluido'?'selected':''}>Concluído</option>
+          <option value="cancelado"    ${fs==='cancelado'?'selected':''}>Cancelado</option>
+          <option value="atrasado"     ${fs==='atrasado'?'selected':''}>Atrasados</option>
         </select>
         <select class="fc" onchange="App.setFilter('pessoa',this.value)">
           <option value="" ${!fp?'selected':''}>Todas as pessoas</option>
@@ -789,19 +920,20 @@ const App = {
         </select>
       </div>
       <div class="card">
-        ${!all.length?`<div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento</h3><p>Tente outros filtros.</p></div>`
-          :all.map(e=>{const resps=getNomes(data,e.responsaveis||[]);return`<div class="li">
-            <div class="li-body">
-              <div class="li-title">${esc(e.descricao||'').slice(0,80)}${(e.descricao||'').length>80?'…':''}</div>
-              <div class="li-meta">
-                <span>📅 ${fmtDate(e._rdata)}</span>
-                ${resps?`<span>👤 ${esc(resps)}</span>`:''}
-                ${e.prazo?`<span>${isLate(e.prazo)&&e.status!=='concluido'?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
-                ${badgeStatus(e.status,e.prazo)}
+        ${!filtered.length
+          ? `<div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento</h3><p>Tente outros filtros.</p></div>`
+          : filtered.map(e=>{const resps=getNomes(data,e.responsaveis||[]);return`<div class="li">
+              <div class="li-body">
+                <div class="li-title">${esc(e.descricao||'').slice(0,80)}${(e.descricao||'').length>80?'…':''}</div>
+                <div class="li-meta">
+                  <span>📅 ${fmtDate(e._rdata)}</span>
+                  ${resps?`<span>👤 ${esc(resps)}</span>`:''}
+                  ${e.prazo?`<span>${isLate(e.prazo)&&e.status!=='concluido'?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
+                  ${badgeStatus(e.status,e.prazo)}
+                </div>
               </div>
-            </div>
-            <button class="btn btn-o btn-sm" onclick="App.go('reuniao',{id:'${e._rid}'})">Ver</button>
-          </div>`;}).join('')}
+              <button class="btn btn-o btn-sm" onclick="App.go('reuniao',{id:'${e._rid}'})">Ver</button>
+            </div>`;}).join('')}
       </div>`;
   },
 
@@ -982,6 +1114,30 @@ const App = {
         </div>`;
     }
 
+    /* ── configurações / alterar senha ── */
+    else if (type === 'config') {
+      el.innerHTML = `
+        <div class="modal-hdr"><span class="modal-title">⚙ Configurações</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
+        <div style="margin-bottom:20px">
+          <div class="card-title" style="margin-bottom:14px">🔒 Alterar Senha de Acesso</div>
+          <div class="fg"><label class="fl">Senha atual</label><input class="fc" type="password" id="pw-old" placeholder="Senha atual"></div>
+          <div class="fg"><label class="fl">Nova senha</label><input class="fc" type="password" id="pw-new" placeholder="Mínimo 6 caracteres"></div>
+          <div class="fg"><label class="fl">Confirmar nova senha</label><input class="fc" type="password" id="pw-new2" placeholder="Repita a nova senha"></div>
+          <div id="pw-msg" style="font-size:13px;margin-top:6px;min-height:18px"></div>
+        </div>
+        <div style="border-top:1px solid var(--bdr);padding-top:16px;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:12px">📁 Dados</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-o btn-sm" onclick="App.exportData()">⬇ Exportar JSON</button>
+            <button class="btn btn-o btn-sm" onclick="document.getElementById('fi').click()">⬆ Importar JSON</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button class="btn btn-o" onclick="App.closeModal()">Fechar</button>
+          <button class="btn btn-p" onclick="App.doChangePassword()">Alterar Senha</button>
+        </div>`;
+    }
+
     /* ── adicionar material ── */
     else if (type === 'add-mat') {
       el.innerHTML = `
@@ -1109,7 +1265,8 @@ const App = {
       ${parsed.encaminhamentos.length ? `<div class="prev-section">
         <div class="prev-section-title">✅ ${parsed.encaminhamentos.length} Encaminhamento(s) detectado(s)</div>
         ${parsed.encaminhamentos.map(e=>`<div class="prev-item">
-          <div class="prev-item-title">${esc(e).slice(0,100)}${e.length>100?'…':''}</div>
+          <div class="prev-item-title">${esc(e.descricao).slice(0,100)}${e.descricao.length>100?'…':''}</div>
+          ${e.respName?`<div class="prev-item-sub">👤 Responsável detectado: ${esc(e.respName)}</div>`:''}
         </div>`).join('')}
       </div>` : ''}
 
@@ -1149,10 +1306,15 @@ const App = {
     // 4. Pautas
     const pautas = parsed.pautas.map(p => ({ id:uid(), titulo:p.titulo, notas:p.notas }));
 
-    // 5. Encaminhamentos
-    const encaminhamentos = parsed.encaminhamentos.map(desc => ({
-      id:uid(), descricao:desc, responsaveis:[], prazo:'', status:'pendente', observacoes:'', materiais:[]
-    }));
+    // 5. Encaminhamentos — tenta resolver responsável detectado
+    const encaminhamentos = parsed.encaminhamentos.map(e => {
+      const resps = [];
+      if (e.respName) {
+        const p = ensurePessoa(e.respName);
+        if (p) resps.push(p.id);
+      }
+      return { id:uid(), descricao:e.descricao, responsaveis:resps, prazo:'', status:'pendente', observacoes:'', materiais:[] };
+    });
 
     // 6. Criar reunião
     const reuniao = {
@@ -1256,6 +1418,19 @@ const App = {
     const data=DB.get(); data.pessoas.splice(idx,1);
     DB.save(data); toast('Excluído.'); this.go('pessoas');
   },
+  doChangePassword() {
+    const old  = document.getElementById('pw-old')?.value  || '';
+    const nw   = document.getElementById('pw-new')?.value  || '';
+    const nw2  = document.getElementById('pw-new2')?.value || '';
+    const msg  = document.getElementById('pw-msg');
+    const err  = AUTH.changePassword(old, nw, nw2);
+    if (err) {
+      msg.style.color = 'var(--err)'; msg.textContent = '⚠ ' + err;
+    } else {
+      msg.style.color = 'var(--ok)'; msg.textContent = '✅ Senha alterada com sucesso!';
+      ['pw-old','pw-new','pw-new2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    }
+  },
   setFilter(key,val) { this.filters[key]=val; this.render(); },
 
   saveMat() {
@@ -1302,7 +1477,11 @@ const App = {
 
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') App.closeModal(); });
 document.addEventListener('input', e=>{ if(e.target.id==='m-area') e.target.dataset.edited='1'; });
-App.go('dashboard');
+if (AUTH.check()) {
+  App.go('dashboard');
+} else {
+  document.getElementById('login-pw')?.focus();
+}
 </script>
 </body>
 </html>
