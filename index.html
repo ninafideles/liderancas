@@ -488,6 +488,7 @@ function parseRelatoria(text) {
   }
 
   // ── ENCAMINHAMENTOS
+  // Bullet = headline (descricao); linhas seguintes sem bullet = descrição (observacoes)
   const encChunk = chunks.find(c=>c.key==='ENCAMINHAMENTOS');
   if (encChunk) {
     let curEnc = null;
@@ -498,24 +499,19 @@ function parseRelatoria(text) {
     for (const raw of encChunk.lines) {
       const t = raw.trim();
       if (!t) continue;
-      // Qualquer bullet ou item numerado = novo encaminhamento
       if (/^[-•·*→▪>]\s/.test(t) || /^\d+[.)]\s/.test(t)) {
         flushEnc();
         let txt = t.replace(/^[-•·*→▪>]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/;\s*$/,'').trim();
         let respName = null;
-        // "Nome: descrição" → extrai responsável
         const m1 = txt.match(/^([A-ZÁÉÍÓÚÀÂÊÔÃÕ][\wáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ]+(?:\s+[\wáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ]+)?)\s*:\s*(.+)/);
         if (m1 && m1[1].split(/\s+/).length <= 2) { respName=m1[1]; txt=m1[2].trim(); }
-        // "(Nome)" → extrai responsável
-        if (!respName) {
-          const m2 = txt.match(/\(([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)\)/);
-          if (m2) { respName=m2[1]; txt=txt.replace(m2[0],'').trim(); }
-        }
-        curEnc = { descricao:txt, respName };
-        continue;
+        const m2 = !respName && txt.match(/\(([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)\)/);
+        if (m2) { respName=m2[1]; txt=txt.replace(m2[0],'').trim(); }
+        curEnc = { descricao:txt, respName, observacoes:'' };
+      } else if (curEnc && t.length > 2) {
+        // Linha sem bullet = descrição do encaminhamento atual
+        curEnc.observacoes += (curEnc.observacoes ? '\n' : '') + t;
       }
-      // Linha sem bullet = continuação do encaminhamento anterior
-      if (curEnc && t.length > 2) curEnc.descricao += ' ' + t.replace(/;\s*$/,'');
     }
     flushEnc();
   }
@@ -1338,7 +1334,7 @@ const App = {
         const p = ensurePessoa(e.respName);
         if (p) resps.push(p.id);
       }
-      return { id:uid(), descricao:e.descricao, responsaveis:resps, prazo:'', status:'pendente', observacoes:'', materiais:[] };
+      return { id:uid(), descricao:e.descricao, responsaveis:resps, prazo:'', status:'pendente', observacoes:e.observacoes||'', materiais:[] };
     });
 
     // 6. Criar reunião
