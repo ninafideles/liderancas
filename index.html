@@ -209,6 +209,21 @@
     .pend-card { border-left:4px solid var(--warn); background:#fffdf0; border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:8px; }
     .pend-card:last-child { margin-bottom:0; }
     .enc-reuniao { font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+
+    /* ── Calendário ── */
+    .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .cal-month-lbl { font-size:16px; font-weight:800; color:var(--pri); letter-spacing:-.2px; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-dow { text-align:center; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); padding:4px 2px 8px; }
+    .cal-cell { text-align:center; padding:7px 4px 5px; border-radius:8px; font-size:13px; font-weight:500; position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; min-height:40px; justify-content:center; transition:background .12s; }
+    .cal-empty { pointer-events:none; }
+    .cal-has-meeting { background:var(--bg); cursor:pointer; font-weight:700; color:var(--acc); border:1px solid var(--bdr); }
+    .cal-has-meeting:hover { background:var(--acc); color:#fff; border-color:var(--acc); }
+    .cal-today { background:var(--pri) !important; color:#fff !important; font-weight:800; border-color:var(--pri) !important; }
+    .cal-dot { display:block; width:5px; height:5px; border-radius:50%; background:var(--acc); }
+    .cal-has-meeting:hover .cal-dot, .cal-today .cal-dot { background:#fff; }
+    .cal-legend { display:flex; gap:14px; font-size:11px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--bdr); }
+    .cal-legend-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle; }
   </style>
 </head>
 <body>
@@ -558,6 +573,64 @@ const DB = {
 const App = {
   view:'dashboard', params:{}, filters:{ status:'', pessoa:'' },
   _payload:null, _tab:'link', _file:null, _parsed:null,
+  calYear: new Date().getFullYear(), calMonth: new Date().getMonth(),
+
+  calPrev() {
+    if (this.calMonth === 0) { this.calYear--; this.calMonth = 11; }
+    else this.calMonth--;
+    this.render();
+  },
+  calNext() {
+    if (this.calMonth === 11) { this.calYear++; this.calMonth = 0; }
+    else this.calMonth++;
+    this.render();
+  },
+  renderCal(data) {
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const DIAS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const y = this.calYear, m = this.calMonth;
+    const firstDow   = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const today = new Date();
+    const todayDay = (today.getFullYear()===y && today.getMonth()===m) ? today.getDate() : -1;
+
+    // Monta mapa dia → reunião
+    const byDay = {};
+    (data.reunioes||[]).forEach(r => {
+      if (!r.data) return;
+      const d = new Date(r.data + 'T12:00:00');
+      if (d.getFullYear()===y && d.getMonth()===m) {
+        const dd = d.getDate();
+        if (!byDay[dd]) byDay[dd] = [];
+        byDay[dd].push(r);
+      }
+    });
+
+    let cells = DIAS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+    for (let i=0; i<firstDow; i++) cells += '<div class="cal-cell cal-empty"></div>';
+    for (let d=1; d<=daysInMonth; d++) {
+      const meetings = byDay[d];
+      const isToday  = d === todayDay;
+      let cls = 'cal-cell';
+      if (meetings) cls += ' cal-has-meeting';
+      if (isToday)  cls += ' cal-today';
+      const click = meetings ? `onclick="App.go('reuniao',{id:'${meetings[0].id}'})"` : '';
+      cells += `<div class="${cls}" ${click}>${d}${meetings?'<span class="cal-dot"></span>':''}</div>`;
+    }
+
+    return `<div class="card" style="margin-bottom:14px">
+      <div class="cal-nav">
+        <button class="ico-btn" style="font-size:18px;font-weight:700" onclick="App.calPrev()">‹</button>
+        <span class="cal-month-lbl">${MESES[m]} ${y}</span>
+        <button class="ico-btn" style="font-size:18px;font-weight:700" onclick="App.calNext()">›</button>
+      </div>
+      <div class="cal-grid">${cells}</div>
+      <div class="cal-legend">
+        <span><span class="cal-legend-dot" style="background:var(--acc)"></span>Reunião registrada</span>
+        <span><span class="cal-legend-dot" style="background:var(--pri)"></span>Hoje</span>
+      </div>
+    </div>`;
+  },
 
   go(view, params={}) {
     this.view=view; this.params=params;
@@ -593,8 +666,8 @@ const App = {
         <span class="pt">Dashboard</span>
         <button class="btn btn-g btn-sm" onclick="App.openModal('colar-relatoria')">📋 Colar Relatoria</button>
       </div>
-      <div class="metrics">
-        <div class="metric">  <div class="metric-n">${data.reunioes.length}</div><div class="metric-l">Reuniões</div></div>
+      ${this.renderCal(data)}
+      <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
         <div class="metric s"><div class="metric-n">${ok}</div><div class="metric-l">Concluídos</div></div>
         <div class="metric w"><div class="metric-n">${open}</div><div class="metric-l">Em aberto</div></div>
         <div class="metric d"><div class="metric-n">${late}</div><div class="metric-l">Atrasados</div></div>
