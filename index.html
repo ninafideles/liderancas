@@ -209,6 +209,15 @@
     .pend-card { border-left:4px solid var(--warn); background:#fffdf0; border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:8px; }
     .pend-card:last-child { margin-bottom:0; }
     .enc-reuniao { font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+    .enc-list-card { border:1px solid var(--bdr); border-radius:10px; padding:14px 16px; margin-bottom:10px; background:var(--card); cursor:pointer; transition:box-shadow .15s, border-color .15s; }
+    .enc-list-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.09); border-color:var(--acc); }
+    .enc-list-title { font-size:14px; font-weight:700; margin-bottom:5px; line-height:1.4; }
+    .enc-list-desc { font-size:13px; color:var(--muted); margin-bottom:8px; line-height:1.5; }
+    .enc-list-meta { font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+    .enc-status-row { display:flex; gap:5px; flex-wrap:wrap; }
+    .upd-item { border-left:3px solid var(--bdr); padding:8px 12px; margin-bottom:8px; border-radius:0 6px 6px 0; background:var(--bg); }
+    .upd-date { font-size:11px; color:var(--muted); margin-bottom:3px; font-weight:600; }
+    .upd-txt  { font-size:13px; line-height:1.5; }
 
     /* ── Calendário ── */
     .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
@@ -921,21 +930,29 @@ const App = {
           ${data.pessoas.map(p=>`<option value="${p.id}" ${fp===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
         </select>
       </div>
-      <div class="card">
+      <div>
         ${!filtered.length
-          ? `<div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento</h3><p>Tente outros filtros.</p></div>`
-          : filtered.map(e=>{const resps=getNomes(data,e.responsaveis||[]);return`<div class="li">
-              <div class="li-body">
-                <div class="li-title">${esc(e.descricao||'').slice(0,80)}${(e.descricao||'').length>80?'…':''}</div>
-                <div class="li-meta">
+          ? `<div class="card"><div class="empty"><div class="empty-ico">✅</div><h3>Nenhum encaminhamento</h3><p>Tente outros filtros.</p></div></div>`
+          : filtered.map(e=>{
+              const sttCls={pendente:'on-pend',em_andamento:'on-and',concluido:'on-ok',cancelado:'on-can'};
+              const sttLbl={pendente:'Pendente',em_andamento:'Em andamento',concluido:'Concluído',cancelado:'Cancelado'};
+              const resps=getNomes(data,e.responsaveis||[]);
+              return`<div class="enc-list-card" onclick="App.openModal('enc-detalhe',{rid:'${e._rid}',eid:'${e.id}'})">
+                <div class="enc-list-title">${esc(e.descricao||'')}</div>
+                ${e.observacoes?`<div class="enc-list-desc">${esc(e.observacoes).slice(0,150)}${e.observacoes.length>150?'…':''}</div>`:''}
+                <div class="enc-list-meta">
                   <span>📅 ${fmtDate(e._rdata)}</span>
                   ${resps?`<span>👤 ${esc(resps)}</span>`:''}
                   ${e.prazo?`<span>${isLate(e.prazo)&&e.status!=='concluido'?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
-                  ${badgeStatus(e.status,e.prazo)}
+                  ${(e.atualizacoes||[]).length?`<span>💬 ${e.atualizacoes.length} atualiz.</span>`:''}
                 </div>
-              </div>
-              <button class="btn btn-o btn-sm" onclick="App.go('reuniao',{id:'${e._rid}'})">Ver</button>
-            </div>`;}).join('')}
+                <div class="enc-status-row" onclick="event.stopPropagation()">
+                  ${['pendente','em_andamento','concluido','cancelado'].map(s=>
+                    `<button class="stt-btn ${e.status===s?sttCls[s]:''}" onclick="App.setEncStatusById('${e._rid}','${e.id}','${s}')">${sttLbl[s]}</button>`
+                  ).join('')}
+                </div>
+              </div>`;
+            }).join('')}
       </div>`;
   },
 
@@ -1138,6 +1155,55 @@ const App = {
           <button class="btn btn-o" onclick="App.closeModal()">Fechar</button>
           <button class="btn btn-p" onclick="App.doChangePassword()">Alterar Senha</button>
         </div>`;
+    }
+
+    /* ── detalhe de encaminhamento ── */
+    else if (type === 'enc-detalhe') {
+      const rid=payload.rid, eid=payload.eid;
+      const r=data.reunioes.find(x=>x.id===rid);
+      const e=r?.encaminhamentos?.find(x=>x.id===eid);
+      if (!e||!r) { el.innerHTML='<p style="padding:20px">Não encontrado.</p>'; }
+      else {
+        const sttCls={pendente:'on-pend',em_andamento:'on-and',concluido:'on-ok',cancelado:'on-can'};
+        const sttLbl={pendente:'Pendente',em_andamento:'Em andamento',concluido:'Concluído',cancelado:'Cancelado'};
+        const resps=getNomes(data,e.responsaveis||[]);
+        const atualizacoes=e.atualizacoes||[];
+        el.innerHTML=`
+          <div class="modal-hdr">
+            <span class="modal-title">Encaminhamento</span>
+            <button class="ico-btn" onclick="App.closeModal()">✕</button>
+          </div>
+          <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:12px">${esc(e.descricao||'')}</div>
+          ${e.observacoes?`<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">${esc(e.observacoes).replace(/\n/g,'<br>')}</p>`:''}
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;font-size:13px;color:var(--muted)">
+            <span>📅 ${fmtDate(r.data)}${r.titulo?' · '+esc(r.titulo):''}</span>
+            ${resps?`<span>👤 ${esc(resps)}</span>`:''}
+            ${e.prazo?`<span>⏰ ${fmtDate(e.prazo)}</span>`:''}
+          </div>
+          <div style="margin-bottom:18px">
+            <div class="slbl" style="margin-bottom:8px">Status</div>
+            <div class="stt-row">
+              ${['pendente','em_andamento','concluido','cancelado'].map(s=>
+                `<button class="stt-btn ${e.status===s?sttCls[s]:''}" onclick="App.setEncStatusById('${rid}','${eid}','${s}');App.openModal('enc-detalhe',{rid:'${rid}',eid:'${eid}'})">${sttLbl[s]}</button>`
+              ).join('')}
+            </div>
+          </div>
+          ${atualizacoes.length?`<div style="margin-bottom:14px">
+            <div class="slbl" style="margin-bottom:8px">Histórico de atualizações</div>
+            ${atualizacoes.slice().reverse().map(u=>`<div class="upd-item">
+              <div class="upd-date">${fmtDate(u.data)}</div>
+              <div class="upd-txt">${esc(u.texto).replace(/\n/g,'<br>')}</div>
+            </div>`).join('')}
+          </div>`:''}
+          <div style="border-top:1px solid var(--bdr);padding-top:14px">
+            <div class="slbl" style="margin-bottom:6px">Adicionar atualização</div>
+            <textarea class="fc" id="m-upd-txt" rows="3" placeholder="Descreva o andamento ou decisão..."></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+              <button class="btn btn-o btn-sm" onclick="App.closeModal()">Fechar</button>
+              <button class="btn btn-p btn-sm" onclick="App.addEncUpdate('${rid}','${eid}')">Salvar atualização</button>
+            </div>
+          </div>`;
+      }
     }
 
     /* ── adicionar material ── */
@@ -1406,6 +1472,21 @@ const App = {
     const data=DB.get(), r=data.reunioes.find(x=>x.id===rid);
     if(r&&r.encaminhamentos[idx]) r.encaminhamentos[idx].status=status;
     DB.save(data); this.go('reuniao',{id:rid});
+  },
+  setEncStatusById(rid,eid,status) {
+    const data=DB.get(), r=data.reunioes.find(x=>x.id===rid);
+    if(r){ const e=r.encaminhamentos.find(x=>x.id===eid); if(e) e.status=status; }
+    DB.save(data); this.render();
+  },
+  addEncUpdate(rid,eid) {
+    const txt=document.getElementById('m-upd-txt')?.value?.trim();
+    if (!txt) return;
+    const data=DB.get(), r=data.reunioes.find(x=>x.id===rid); if(!r) return;
+    const e=r.encaminhamentos.find(x=>x.id===eid); if(!e) return;
+    if (!e.atualizacoes) e.atualizacoes=[];
+    e.atualizacoes.push({ id:uid(), texto:txt, data:new Date().toISOString().slice(0,10) });
+    DB.save(data);
+    this.openModal('enc-detalhe',{rid,eid});
   },
   savePessoa(idx) {
     const nome=document.getElementById('m-nome')?.value?.trim();
