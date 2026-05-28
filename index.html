@@ -476,35 +476,15 @@ function parseRelatoria(text) {
     flushInforme();
   }
 
-  // ── PAUTAS — captura texto corrido por pauta
+  // ── PAUTAS — texto corrido único, sem divisão por itens
   const pautaChunk = chunks.find(c=>c.key==='PAUTAS');
   if (pautaChunk) {
-    let curTitulo='', curLinhas=[];
-    const flushPauta = () => {
-      if (curTitulo) result.pautas.push({ titulo:curTitulo, notas:curLinhas.join('\n') });
-      curTitulo=''; curLinhas=[];
-    };
-    for (const raw of pautaChunk.lines) {
-      const t = raw.trim();
-      if (!t) { if (curTitulo) curLinhas.push(''); continue; }
-      if (/^[-•·*]\s/.test(t) && !curTitulo) {
-        // Bullet de nível raiz sem pauta aberta = título da nova pauta
-        curTitulo = t.replace(/^[-•·*]\s*/,'').trim();
-        continue;
-      }
-      if (/^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(t) && !/^[-•·*]/.test(t) && !personSep.test(t)) {
-        // Linha capitulada = nova seção de pauta
-        flushPauta();
-        curTitulo = t;
-        continue;
-      }
-      if (curTitulo) {
-        // Tudo vira texto corrido — remove bullet se houver
-        const linha = t.replace(/^[-•·*→]\s*/,'').trim();
-        if (linha) curLinhas.push(linha);
-      }
+    const linhas = pautaChunk.lines
+      .map(l => l.replace(/^[-•·*→▪]\s*/,'').trim())
+      .filter(l => l.length > 0);
+    if (linhas.length > 0) {
+      result.pautas.push({ titulo:'', notas: linhas.join('\n') });
     }
-    flushPauta();
   }
 
   // ── ENCAMINHAMENTOS
@@ -834,7 +814,7 @@ const App = {
         ${!pautas.length?'<p style="font-size:13px;color:var(--muted)">Nenhuma pauta registrada.</p>'
           :pautas.map((p,idx)=>`<div class="pauta-blk">
             <div class="pauta-hd">
-              <span class="pauta-titulo">${esc(p.titulo||'')}</span>
+              ${p.titulo?`<span class="pauta-titulo">${esc(p.titulo)}</span>`:'<span style="font-size:12px;color:var(--muted);font-style:italic">Pautas da reunião</span>'}
               <div style="display:flex;gap:3px">
                 <button class="ico-btn" onclick="App.openModal('editar-pauta',{rid:'${rid}',idx:${idx}})">✏️</button>
                 <button class="ico-btn" style="color:var(--err)" onclick="App.delPauta('${rid}',${idx})">🗑️</button>
@@ -1349,7 +1329,7 @@ const App = {
     });
 
     // 4. Pautas
-    const pautas = parsed.pautas.map(p => ({ id:uid(), titulo:p.titulo, notas:p.notas }));
+    const pautas = parsed.pautas.map(p => ({ id:uid(), titulo:p.titulo||'', notas:p.notas||'' }));
 
     // 5. Encaminhamentos — tenta resolver responsável detectado
     const encaminhamentos = parsed.encaminhamentos.map(e => {
