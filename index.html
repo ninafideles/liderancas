@@ -1033,12 +1033,40 @@ const App = {
           <span class="modal-title">📋 Colar Relatoria</span>
           <button class="ico-btn" onclick="App.closeModal()">✕</button>
         </div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
-          Cole o texto completo da ata/relatoria abaixo. O sistema vai identificar automaticamente as pessoas, informes, pautas e encaminhamentos.
-        </p>
+        <details style="margin-bottom:14px;background:var(--bg);border-radius:8px;padding:10px 14px">
+          <summary style="font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:6px">
+            <span>▶</span> Formato esperado — clique para ver
+          </summary>
+          <pre style="margin-top:12px;font-size:12px;line-height:1.7;color:var(--txt);white-space:pre-wrap;font-family:monospace">DD de Mês de AAAA | Lideranças
+Participantes: Nome1, Nome2 e Nome3
+
+RELATORIA: Nome
+Próxima: Nome
+
+Informes
+
+Texto corrido dos informes da reunião.
+
+Pautas
+
+Texto corrido das pautas discutidas.
+
+Encaminhamentos
+
+1. Título do encaminhamento - Responsável
+- detalhe ou desdobramento
+- outro detalhe
+
+2. Outro encaminhamento - Responsável
+
+3. Encaminhamento sem responsável</pre>
+        </details>
         <div class="fg">
-          <label class="fl">Texto da relatoria</label>
-          <textarea class="fc" id="m-relatoria" rows="16" placeholder="09 de Abril de 2026 | Lideranças&#10;Participantes: Ana, Monyse, Carol, Lucas, Nina e Zia&#10;&#10;RELATORIA: Ana&#10;Próxima: Lucas&#10;&#10;Informes&#10;&#10;Texto corrido dos informes...&#10;&#10;Pautas&#10;&#10;Texto corrido das pautas...&#10;&#10;Encaminhamentos&#10;&#10;1. Título do encaminhamento - Responsável&#10;- detalhe ou sub-item&#10;- outro detalhe&#10;&#10;2. Outro encaminhamento - Nome&#10;&#10;3. Encaminhamento sem responsável"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <label class="fl" style="margin:0">Texto da relatoria</label>
+            <button class="btn btn-o btn-xs" onclick="App.carregarModelo()">📄 Carregar modelo</button>
+          </div>
+          <textarea class="fc" id="m-relatoria" rows="15" placeholder="Cole aqui o texto da relatoria..."></textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
@@ -1552,6 +1580,40 @@ const App = {
       msg.style.color = 'var(--ok)'; msg.textContent = '✅ Senha alterada com sucesso!';
       ['pw-old','pw-new','pw-new2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     }
+  },
+  carregarModelo() {
+    const hoje = new Date();
+    const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    const dataStr = `${hoje.getDate()} de ${MESES[hoje.getMonth()]} de ${hoje.getFullYear()}`;
+    const data = DB.get();
+    const ativos = data.pessoas.filter(p=>p.status==='ativo').map(p=>p.nome);
+    const partsStr = ativos.length
+      ? ativos.slice(0,-1).join(', ') + (ativos.length>1?' e ':' ') + (ativos.slice(-1)[0]||'')
+      : 'Nome1, Nome2 e Nome3';
+    const modelo = `${dataStr} | Lideranças
+Participantes: ${partsStr}
+
+RELATORIA: Nome
+Próxima: Nome
+
+Informes
+
+Texto corrido dos informes da reunião.
+
+Pautas
+
+Texto corrido das pautas discutidas.
+
+Encaminhamentos
+
+1. Título do encaminhamento - Responsável
+- detalhe ou desdobramento
+
+2. Outro encaminhamento - Responsável
+
+3. Encaminhamento sem responsável`;
+    const ta = document.getElementById('m-relatoria');
+    if (ta) { ta.value = modelo; ta.focus(); }
   },
   setFilter(key,val) { this.filters[key]=val; this.render(); },
 
