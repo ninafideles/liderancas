@@ -495,6 +495,13 @@ function parseRelatoria(text) {
       return { desc: txt, respName: null };
     };
 
+    const extrairTitulo = (txt) => {
+      const m = txt.match(/^(.+?)[,;]/);
+      if (m && m[1].split(/\s+/).length <= 5 && m[1].length <= 42)
+        return m[1].trim();
+      return txt.split(/\s+/).slice(0, 5).join(' ');
+    };
+
     for (const raw of encChunk.lines) {
       const t = raw.trim();
       if (!t) continue;
@@ -502,7 +509,7 @@ function parseRelatoria(text) {
       const txt = t.replace(/^[-•·*→▪>]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/;\s*$/,'').trim();
       if (!txt) continue;
       const { desc, respName } = extrairResp(txt);
-      result.encaminhamentos.push({ descricao: desc, respName, observacoes: '' });
+      result.encaminhamentos.push({ titulo: extrairTitulo(desc), descricao: desc, respName, observacoes: '' });
     }
   }
 
@@ -671,16 +678,16 @@ const App = {
           <div class="card-hdr"><span class="card-title">Encaminhamentos Urgentes</span>
             <button class="btn btn-o btn-sm" onclick="App.go('encaminhamentos')">Ver todos</button>
           </div>
-          ${urgent.length ? urgent.map(e=>`<div class="li">
+          ${urgent.length ? urgent.map(e=>{const ut=e.titulo||(e.descricao||'').split(/\s+/).slice(0,5).join(' ');return`<div class="li">
             <div class="li-body">
-              <div class="li-title">${esc(e.descricao||'').slice(0,60)}${(e.descricao||'').length>60?'…':''}</div>
+              <div class="li-title">${esc(ut.slice(0,60))}${ut.length>60?'…':''}</div>
               <div class="li-meta">
                 ${(e.responsaveis||[]).length?`<span>👤 ${esc(getNomes(data,e.responsaveis))}</span>`:''}
                 ${e.prazo?`<span>${isLate(e.prazo)?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
                 ${badgeStatus(e.status,e.prazo)}
               </div>
             </div>
-          </div>`).join('') : '<div class="empty" style="padding:16px"><p>Nenhum em aberto.</p></div>'}
+          </div>`;}).join('') : '<div class="empty" style="padding:16px"><p>Nenhum em aberto.</p></div>'}
         </div>
       </div>
       ${data.pessoas.filter(p=>p.status==='ativo').length?`<div class="card" style="margin-top:2px">
@@ -819,9 +826,11 @@ const App = {
           :encs.map((e,idx)=>{
             const resps=(e.responsaveis||[]).map(id=>{const p=getPessoa(data,id);return p?p.nome:'?';}).join(', ');
             const eMats=e.materiais||[];
+            const etit=e.titulo||(e.descricao||'').split(/\s+/).slice(0,5).join(' ');
+            const ehasDesc=e.descricao&&e.descricao!==etit;
             return `<div class="enc">
               <div class="enc-top">
-                <div class="enc-desc">${esc(e.descricao||'')}</div>
+                <div class="enc-desc">${esc(etit)}</div>
                 <div style="display:flex;gap:3px;flex-shrink:0">
                   <button class="ico-btn" onclick="App.openModal('editar-enc',{rid:'${rid}',idx:${idx}})">✏️</button>
                   <button class="ico-btn" style="color:var(--err)" onclick="App.delEnc('${rid}',${idx})">🗑️</button>
@@ -832,6 +841,7 @@ const App = {
                 ${e.prazo?`<span>📅 ${fmtDate(e.prazo)}</span>`:''}
                 ${badgeStatus(e.status,e.prazo)}
               </div>
+              ${ehasDesc?`<div class="enc-obs" style="margin-top:5px;margin-bottom:5px">${esc(e.descricao).replace(/\n/g,'<br>')}</div>`:''}
               ${e.observacoes?`<div class="enc-obs">${esc(e.observacoes).replace(/\n/g,'<br>')}</div>`:''}
               <div class="stt-row">
                 ${['pendente','em_andamento','concluido','cancelado'].map(s=>
@@ -887,9 +897,10 @@ const App = {
         ${atrasados.length?`<div style="background:#ffe0e0;color:#8b1414;border-radius:7px;padding:8px 12px;font-size:12px;font-weight:700;margin-bottom:12px">⚠️ ${atrasados.length} com prazo vencido</div>`:''}
         ${pendentes.slice(0,10).map(e=>{
           const resps=getNomes(data,e.responsaveis||[]);
+          const pt=e.titulo||(e.descricao||'').split(/\s+/).slice(0,5).join(' ');
           return`<div class="pend-card">
             <div class="enc-reuniao">📅 ${fmtDate(e._rdata)}${e._rtit?' · '+esc(e._rtit):''}</div>
-            <div style="font-size:14px;font-weight:600;margin-bottom:5px">${esc(e.descricao||'').slice(0,100)}${(e.descricao||'').length>100?'…':''}</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:5px">${esc(pt)}</div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px">
               ${resps?`<span style="color:var(--muted)">👤 ${esc(resps)}</span>`:'<span style="color:var(--err)">👤 Sem responsável</span>'}
               ${e.prazo?`<span style="color:var(--muted)">${isLate(e.prazo)?'⚠️ ':''}${fmtDate(e.prazo)}</span>`:''}
@@ -937,9 +948,11 @@ const App = {
               const sttCls={pendente:'on-pend',em_andamento:'on-and',concluido:'on-ok',cancelado:'on-can'};
               const sttLbl={pendente:'Pendente',em_andamento:'Em andamento',concluido:'Concluído',cancelado:'Cancelado'};
               const resps=getNomes(data,e.responsaveis||[]);
+              const tit = e.titulo || (e.descricao||'').split(/\s+/).slice(0,5).join(' ');
+              const hasDesc = e.descricao && e.descricao !== tit;
               return`<div class="enc-list-card" onclick="App.openModal('enc-detalhe',{rid:'${e._rid}',eid:'${e.id}'})">
-                <div class="enc-list-title">${esc(e.descricao||'')}</div>
-                ${e.observacoes?`<div class="enc-list-desc">${esc(e.observacoes).slice(0,150)}${e.observacoes.length>150?'…':''}</div>`:''}
+                <div class="enc-list-title">${esc(tit)}</div>
+                ${hasDesc?`<div class="enc-list-desc">${esc(e.descricao).slice(0,160)}${e.descricao.length>160?'…':''}</div>`:''}
                 <div class="enc-list-meta">
                   <span>📅 ${fmtDate(e._rdata)}</span>
                   ${resps?`<span>👤 ${esc(resps)}</span>`:''}
@@ -1096,7 +1109,8 @@ const App = {
       const sttL={pendente:'Pendente',em_andamento:'Em andamento',concluido:'Concluído',cancelado:'Cancelado'};
       el.innerHTML = `
         <div class="modal-hdr"><span class="modal-title">${isEdit?'Editar':'Novo'} Encaminhamento</span><button class="ico-btn" onclick="App.closeModal()">✕</button></div>
-        <div class="fg"><label class="fl">Descrição</label><textarea class="fc" id="m-desc" rows="3" placeholder="O que foi decidido...">${esc(e?.descricao||'')}</textarea></div>
+        <div class="fg"><label class="fl">Título</label><input class="fc" type="text" id="m-titulo-enc" placeholder="Resumo curto — ex: Carta sindicato" value="${esc(e?.titulo||'')}"></div>
+        <div class="fg"><label class="fl">Descrição / detalhes</label><textarea class="fc" id="m-desc" rows="3" placeholder="O que foi decidido...">${esc(e?.descricao||'')}</textarea></div>
         <div class="fg"><label class="fl">Responsáveis</label>
           <div class="chk-list">${data.pessoas.map(p=>`
             <label class="chk-item"><input type="checkbox" value="${p.id}" ${(e?.responsaveis||[]).includes(p.id)?'checked':''} class="resp-chk">
@@ -1168,13 +1182,16 @@ const App = {
         const sttLbl={pendente:'Pendente',em_andamento:'Em andamento',concluido:'Concluído',cancelado:'Cancelado'};
         const resps=getNomes(data,e.responsaveis||[]);
         const atualizacoes=e.atualizacoes||[];
+        const dtit=e.titulo||(e.descricao||'').split(/\s+/).slice(0,5).join(' ');
+        const dhasDesc=e.descricao&&e.descricao!==dtit;
         el.innerHTML=`
           <div class="modal-hdr">
             <span class="modal-title">Encaminhamento</span>
             <button class="ico-btn" onclick="App.closeModal()">✕</button>
           </div>
-          <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:12px">${esc(e.descricao||'')}</div>
-          ${e.observacoes?`<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">${esc(e.observacoes).replace(/\n/g,'<br>')}</p>`:''}
+          <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:${dhasDesc?'6':'12'}px">${esc(dtit)}</div>
+          ${dhasDesc?`<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">${esc(e.descricao).replace(/\n/g,'<br>')}</p>`:''}
+          ${e.observacoes?`<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6;border-left:3px solid var(--bdr);padding-left:10px">${esc(e.observacoes).replace(/\n/g,'<br>')}</p>`:''}
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;font-size:13px;color:var(--muted)">
             <span>📅 ${fmtDate(r.data)}${r.titulo?' · '+esc(r.titulo):''}</span>
             ${resps?`<span>👤 ${esc(resps)}</span>`:''}
@@ -1381,7 +1398,7 @@ const App = {
         const p = ensurePessoa(e.respName);
         if (p) resps.push(p.id);
       }
-      return { id:uid(), descricao:e.descricao, responsaveis:resps, prazo:'', status:'pendente', observacoes:e.observacoes||'', materiais:[] };
+      return { id:uid(), titulo:e.titulo||'', descricao:e.descricao, responsaveis:resps, prazo:'', status:'pendente', observacoes:e.observacoes||'', materiais:[], atualizacoes:[] };
     });
 
     // 6. Criar reunião
@@ -1457,9 +1474,13 @@ const App = {
     const resps=[...document.querySelectorAll('.resp-chk:checked')].map(c=>c.value);
     const data=DB.get(), r=data.reunioes.find(x=>x.id===rid); if(!r) return;
     if (!r.encaminhamentos) r.encaminhamentos=[];
-    const enc={ id:idx>=0?(r.encaminhamentos[idx]?.id||uid()):uid(), descricao:desc, responsaveis:resps,
+    const enc={ id:idx>=0?(r.encaminhamentos[idx]?.id||uid()):uid(),
+      titulo:document.getElementById('m-titulo-enc')?.value?.trim()||'',
+      descricao:desc, responsaveis:resps,
       prazo:document.getElementById('m-prazo')?.value||'', status:document.getElementById('m-status')?.value||'pendente',
-      observacoes:document.getElementById('m-obs')?.value||'', materiais:idx>=0?(r.encaminhamentos[idx]?.materiais||[]):[] };
+      observacoes:document.getElementById('m-obs')?.value||'',
+      materiais:idx>=0?(r.encaminhamentos[idx]?.materiais||[]):[],
+      atualizacoes:idx>=0?(r.encaminhamentos[idx]?.atualizacoes||[]):[] };
     if (idx>=0) r.encaminhamentos[idx]=enc; else r.encaminhamentos.push(enc);
     DB.save(data); this.closeModal(); toast('Encaminhamento salvo!'); this.go('reuniao',{id:rid});
   },
