@@ -479,37 +479,55 @@ function parseRelatoria(text) {
   }
 
   // ── ENCAMINHAMENTOS
-  // Formato real: cada linha (com ou sem bullet) = um encaminhamento
-  // Responsável detectado de: "texto - Nome" no final, ou "Nome: texto" no início
+  // Formato numerado (preferencial): "1. Título - Responsável" + "- sub-item" abaixo
+  // Formato plano (retrocompatível): cada linha = um encaminhamento
   const encChunk = chunks.find(c=>c.key==='ENCAMINHAMENTOS');
   if (encChunk) {
     const extrairResp = (txt) => {
-      // "texto do encaminhamento - Nome" no final
       const mFim = txt.match(/^(.+?)\s*[-–]\s*([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)?)\s*$/);
       if (mFim && mFim[2].split(/\s+/).length <= 2 && mFim[1].length > 5)
         return { desc: mFim[1].trim(), respName: mFim[2].trim() };
-      // "Nome: texto do encaminhamento" no início
       const mIni = txt.match(/^([A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕ][a-záéíóúàâêôãõ]+)?)\s*:\s*(.+)/);
       if (mIni && mIni[1].split(/\s+/).length <= 2)
         return { desc: mIni[2].trim(), respName: mIni[1].trim() };
       return { desc: txt, respName: null };
     };
 
-    const extrairTitulo = (txt) => {
-      const m = txt.match(/^(.+?)[,;]/);
-      if (m && m[1].split(/\s+/).length <= 5 && m[1].length <= 42)
-        return m[1].trim();
-      return txt.split(/\s+/).slice(0, 5).join(' ');
-    };
+    const hasNumbered = encChunk.lines.some(l => /^\d+\.\s+/.test(l.trim()));
 
-    for (const raw of encChunk.lines) {
-      const t = raw.trim();
-      if (!t) continue;
-      // Remove bullet se houver
-      const txt = t.replace(/^[-•·*→▪>]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/;\s*$/,'').trim();
-      if (!txt) continue;
-      const { desc, respName } = extrairResp(txt);
-      result.encaminhamentos.push({ titulo: extrairTitulo(desc), descricao: desc, respName, observacoes: '' });
+    if (hasNumbered) {
+      // "1. Título - Responsável" com "- sub-item" opcionais abaixo
+      let cur = null;
+      for (const raw of encChunk.lines) {
+        const t = raw.trim();
+        if (!t) continue;
+        const nm = t.match(/^\d+\.\s+(.+)/);
+        if (nm) {
+          if (cur) result.encaminhamentos.push(cur);
+          const { desc, respName } = extrairResp(nm[1].trim());
+          cur = { titulo: desc, descricao: '', respName, observacoes: '' };
+        } else if (cur && /^[-•·*→▪]\s*/.test(t)) {
+          const sub = t.replace(/^[-•·*→▪]\s*/, '').trim();
+          cur.descricao += (cur.descricao ? '\n' : '') + sub;
+        }
+      }
+      if (cur) result.encaminhamentos.push(cur);
+    } else {
+      // Formato plano: cada linha não-vazia = um encaminhamento
+      const extrairTitulo = (txt) => {
+        const m = txt.match(/^(.+?)[,;]/);
+        if (m && m[1].split(/\s+/).length <= 5 && m[1].length <= 42) return m[1].trim();
+        return txt.split(/\s+/).slice(0, 5).join(' ');
+      };
+      for (const raw of encChunk.lines) {
+        const t = raw.trim();
+        if (!t) continue;
+        const txt = t.replace(/^[-•·*→▪>]\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/;\s*$/,'').trim();
+        if (!txt) continue;
+        const { desc, respName } = extrairResp(txt);
+        const titulo = extrairTitulo(desc);
+        result.encaminhamentos.push({ titulo, descricao: desc === titulo ? '' : desc, respName, observacoes: '' });
+      }
     }
   }
 
@@ -1020,7 +1038,7 @@ const App = {
         </p>
         <div class="fg">
           <label class="fl">Texto da relatoria</label>
-          <textarea class="fc" id="m-relatoria" rows="16" placeholder="09 de Abril de 2026 | Lideranças&#10;Participantes: Ana, Monyse, Carol, Lucas, Nina e Zia&#10;&#10;RELATORIA: Ana&#10;Próxima: Lucas&#10;&#10;Informes&#10;&#10;Lucas I Redação&#10;- ...&#10;&#10;Encaminhamentos&#10;&#10;- ..."></textarea>
+          <textarea class="fc" id="m-relatoria" rows="16" placeholder="09 de Abril de 2026 | Lideranças&#10;Participantes: Ana, Monyse, Carol, Lucas, Nina e Zia&#10;&#10;RELATORIA: Ana&#10;Próxima: Lucas&#10;&#10;Informes&#10;&#10;Texto corrido dos informes...&#10;&#10;Pautas&#10;&#10;Texto corrido das pautas...&#10;&#10;Encaminhamentos&#10;&#10;1. Título do encaminhamento - Responsável&#10;- detalhe ou sub-item&#10;- outro detalhe&#10;&#10;2. Outro encaminhamento - Nome&#10;&#10;3. Encaminhamento sem responsável"></textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
