@@ -234,6 +234,9 @@
     .cal-legend { display:flex; gap:14px; font-size:11px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--bdr); }
     .cal-legend-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle; }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -277,6 +280,20 @@
 
 <script>
 /* ============================================================
+   FIREBASE CONFIG — preencha com os dados do seu projeto
+   console.firebase.google.com → Configurações → Seus apps
+============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            'AIzaSyArTybFPJG-YMcZxU8hBNWHdOclcWUUAW4',
+  authDomain:        'liderancas-af088.firebaseapp.com',
+  databaseURL:       'https://liderancas-af088-default-rtdb.firebaseio.com',
+  projectId:         'liderancas-af088',
+  storageBucket:     'liderancas-af088.firebasestorage.app',
+  messagingSenderId: '898858919683',
+  appId:             '1:898858919683:web:6a8ae1c5f1b7d82729eb36'
+};
+
+/* ============================================================
    AUTH — Controle de acesso
    Senha padrão: liderancas2026
    Para alterar: use o menu Config dentro do sistema
@@ -290,7 +307,8 @@ const AUTH = {
     if (pw === this.getPassword()) {
       sessionStorage.setItem('ldr_auth','1');
       document.getElementById('login-screen').classList.add('hidden');
-      App.go('dashboard');
+      document.getElementById('app').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">⏳</div><p>Carregando dados...</p></div>';
+      DB.load().then(() => App.go('dashboard'));
     } else {
       const err = document.getElementById('login-err');
       err.classList.add('show');
@@ -535,18 +553,74 @@ function parseRelatoria(text) {
 }
 
 /* ============================================================
-   DB
+   DB — Firebase Realtime Database + localStorage como cache
 ============================================================ */
 const DB = {
   KEY: 'liderancas_v3',
+  _cache: null,
+  _fbRef: null,
+
+  init() {
+    const cfg = FIREBASE_CONFIG;
+    if (!cfg.apiKey || cfg.apiKey === 'COLE_AQUI') return;
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      this._fbRef = firebase.database().ref('dados');
+    } catch(e) { console.error('Firebase init:', e); }
+  },
+
+  _setupListener() {
+    if (!this._fbRef) return;
+    this._fbRef.on('value', (snapshot) => {
+      const val = snapshot.val();
+      if (!val || this._cache === null) return;
+      if (JSON.stringify(val) === JSON.stringify(this._cache)) return;
+      this._cache = val;
+      try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
+      if (AUTH.check() && !document.getElementById('overlay').classList.contains('open')) {
+        App.render();
+      }
+    });
+  },
+
+  async load() {
+    if (this._fbRef) {
+      try {
+        const snap = await this._fbRef.once('value');
+        const val  = snap.val();
+        if (val) {
+          this._cache = val;
+          try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
+        } else {
+          // Firebase vazio: migra dados do localStorage se houver
+          try { const r = localStorage.getItem(this.KEY); this._cache = r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
+          catch { this._cache = { pessoas:[], reunioes:[] }; }
+          if (this._cache.pessoas.length || this._cache.reunioes.length) {
+            await this._fbRef.set(this._cache);
+          }
+        }
+        this._setupListener();
+        return this._cache;
+      } catch(e) { console.warn('Firebase load falhou, usando localStorage:', e); }
+    }
+    try { const r = localStorage.getItem(this.KEY); this._cache = r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
+    catch { this._cache = { pessoas:[], reunioes:[] }; }
+    return this._cache;
+  },
+
   get() {
+    if (this._cache !== null) return this._cache;
     try { const r = localStorage.getItem(this.KEY); return r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
     catch { return { pessoas:[], reunioes:[] }; }
   },
+
   save(d) {
+    this._cache = d;
     try { localStorage.setItem(this.KEY, JSON.stringify(d)); }
     catch(e) { if (e.name==='QuotaExceededError') alert('Armazenamento cheio. Arquivo muito grande.\nPrefira hospedar no Google Drive e inserir o link.'); }
+    if (this._fbRef) this._fbRef.set(d).catch(e => console.error('Firebase save:', e));
   },
+
   export() {
     const blob = new Blob([JSON.stringify(this.get(), null, 2)], { type:'application/json' });
     const a = document.createElement('a');
@@ -554,6 +628,7 @@ const DB = {
     a.download = 'liderancas_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.json';
     a.click(); URL.revokeObjectURL(a.href);
   },
+
   import(str) {
     const d = JSON.parse(str);
     if (!Array.isArray(d.pessoas) || !Array.isArray(d.reunioes)) throw new Error('formato inválido');
@@ -1661,8 +1736,10 @@ Encaminhamentos
 
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') App.closeModal(); });
 document.addEventListener('input', e=>{ if(e.target.id==='m-area') e.target.dataset.edited='1'; });
+DB.init();
 if (AUTH.check()) {
-  App.go('dashboard');
+  document.getElementById('app').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">⏳</div><p>Carregando dados...</p></div>';
+  DB.load().then(() => App.go('dashboard'));
 } else {
   document.getElementById('login-pw')?.focus();
 }
