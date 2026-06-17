@@ -599,7 +599,7 @@ const DB = {
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
       ]);
       const val = snap.val();
-      if (val) {
+      if (val && Array.isArray(val.reunioes) && Array.isArray(val.pessoas)) {
         this._cache = val;
         try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
         if (AUTH.check() && !document.getElementById('overlay').classList.contains('open')) App.render();
@@ -724,12 +724,13 @@ const App = {
 
   /* ── DASHBOARD ── */
   vDash(data) {
-    const all  = data.reunioes.flatMap(r=>(r.encaminhamentos||[]).map(e=>({...e,_rid:r.id,_rdata:r.data})));
+    const reunioes = data.reunioes || [];
+    const all  = reunioes.flatMap(r=>(r.encaminhamentos||[]).map(e=>({...e,_rid:r.id,_rdata:r.data})));
     const tot  = all.length, ok=all.filter(e=>e.status==='concluido').length;
     const open = all.filter(e=>e.status!=='concluido'&&e.status!=='cancelado').length;
     const late = all.filter(e=>(e.status==='pendente'||e.status==='em_andamento')&&isLate(e.prazo)).length;
     const pct  = tot ? Math.round(ok/tot*100) : 0;
-    const recent = [...data.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,4);
+    const recent = [...reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,4);
     const urgent = all.filter(e=>e.status!=='concluido'&&e.status!=='cancelado')
       .sort((a,b)=>{if(!a.prazo)return 1;if(!b.prazo)return -1;return new Date(a.prazo)-new Date(b.prazo);}).slice(0,5);
     return `
