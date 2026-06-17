@@ -583,32 +583,31 @@ const DB = {
     });
   },
 
-  async load() {
-    if (this._fbRef) {
-      try {
-        const snap = await Promise.race([
-          this._fbRef.once('value'),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
-        ]);
-        const val  = snap.val();
-        if (val) {
-          this._cache = val;
-          try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
-        } else {
-          // Firebase vazio: migra dados do localStorage se houver
-          try { const r = localStorage.getItem(this.KEY); this._cache = r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
-          catch { this._cache = { pessoas:[], reunioes:[] }; }
-          if (this._cache.pessoas.length || this._cache.reunioes.length) {
-            await this._fbRef.set(this._cache);
-          }
-        }
-        this._setupListener();
-        return this._cache;
-      } catch(e) { console.warn('Firebase load falhou, usando localStorage:', e); }
-    }
+  load() {
+    // Carrega localStorage imediatamente — sem esperar Firebase
     try { const r = localStorage.getItem(this.KEY); this._cache = r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
     catch { this._cache = { pessoas:[], reunioes:[] }; }
-    return this._cache;
+    // Firebase em segundo plano: atualiza quando chegar
+    if (this._fbRef) this._syncFirebase();
+    return Promise.resolve(this._cache);
+  },
+
+  async _syncFirebase() {
+    try {
+      const snap = await Promise.race([
+        this._fbRef.once('value'),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+      ]);
+      const val = snap.val();
+      if (val) {
+        this._cache = val;
+        try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
+        if (AUTH.check() && !document.getElementById('overlay').classList.contains('open')) App.render();
+      } else if (this._cache.pessoas.length || this._cache.reunioes.length) {
+        await this._fbRef.set(this._cache).catch(()=>{});
+      }
+      this._setupListener();
+    } catch(e) { console.warn('Firebase sync falhou:', e); }
   },
 
   get() {
