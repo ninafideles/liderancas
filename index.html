@@ -586,7 +586,10 @@ const DB = {
   async load() {
     if (this._fbRef) {
       try {
-        const snap = await this._fbRef.once('value');
+        const snap = await Promise.race([
+          this._fbRef.once('value'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+        ]);
         const val  = snap.val();
         if (val) {
           this._cache = val;
