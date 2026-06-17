@@ -583,11 +583,16 @@ const DB = {
     });
   },
 
+  _norm(d) {
+    if (!d || typeof d !== 'object') d = {};
+    if (!Array.isArray(d.pessoas))  d.pessoas  = [];
+    if (!Array.isArray(d.reunioes)) d.reunioes = [];
+    return d;
+  },
+
   load() {
-    // Carrega localStorage imediatamente — sem esperar Firebase
-    try { const r = localStorage.getItem(this.KEY); this._cache = r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
+    try { const r = localStorage.getItem(this.KEY); this._cache = this._norm(r ? JSON.parse(r) : {}); }
     catch { this._cache = { pessoas:[], reunioes:[] }; }
-    // Firebase em segundo plano: atualiza quando chegar
     if (this._fbRef) this._syncFirebase();
     return Promise.resolve(this._cache);
   },
@@ -612,7 +617,7 @@ const DB = {
 
   get() {
     if (this._cache !== null) return this._cache;
-    try { const r = localStorage.getItem(this.KEY); return r ? JSON.parse(r) : { pessoas:[], reunioes:[] }; }
+    try { const r = localStorage.getItem(this.KEY); return this._norm(r ? JSON.parse(r) : {}); }
     catch { return { pessoas:[], reunioes:[] }; }
   },
 
@@ -1138,7 +1143,11 @@ Encaminhamentos
             <label class="fl" style="margin:0">Texto da relatoria</label>
             <button class="btn btn-o btn-xs" onclick="App.carregarModelo()">📄 Carregar modelo</button>
           </div>
-          <textarea class="fc" id="m-relatoria" rows="15" placeholder="Cole aqui o texto da relatoria..."></textarea>
+          <textarea class="fc" id="m-relatoria" rows="14" placeholder="Cole aqui o texto da relatoria..."></textarea>
+        </div>
+        <div class="fg">
+          <label class="fl">Data da reunião <span style="font-weight:400;color:var(--muted)">(opcional — preencha para relatoria antiga)</span></label>
+          <input class="fc" type="date" id="m-data-override">
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
           <button class="btn btn-o" onclick="App.closeModal()">Cancelar</button>
@@ -1401,6 +1410,8 @@ Encaminhamentos
     const texto = document.getElementById('m-relatoria')?.value?.trim();
     if (!texto || texto.length < 20) { alert('Cole o texto da relatoria antes de processar.'); return; }
     const parsed = parseRelatoria(texto);
+    const dataOverride = document.getElementById('m-data-override')?.value;
+    if (dataOverride) parsed.data = dataOverride;
     this._parsed  = parsed;
     const data    = DB.get();
     const el      = document.getElementById('modal');
