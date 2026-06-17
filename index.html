@@ -308,7 +308,7 @@ const AUTH = {
       sessionStorage.setItem('ldr_auth','1');
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">⏳</div><p>Carregando dados...</p></div>';
-      DB.load().then(() => App.go('dashboard'));
+      DB.load().then(() => App.go('dashboard')).catch(() => App.go('dashboard'));
     } else {
       const err = document.getElementById('login-err');
       err.classList.add('show');
@@ -588,7 +588,7 @@ const DB = {
       try {
         const snap = await Promise.race([
           this._fbRef.once('value'),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
         ]);
         const val  = snap.val();
         if (val) {
@@ -1742,7 +1742,7 @@ document.addEventListener('input', e=>{ if(e.target.id==='m-area') e.target.data
 DB.init();
 if (AUTH.check()) {
   document.getElementById('app').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">⏳</div><p>Carregando dados...</p></div>';
-  DB.load().then(() => App.go('dashboard'));
+  DB.load().then(() => App.go('dashboard')).catch(() => App.go('dashboard'));
 } else {
   document.getElementById('login-pw')?.focus();
 }
