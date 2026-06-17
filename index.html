@@ -725,6 +725,7 @@ const App = {
   /* ── DASHBOARD ── */
   vDash(data) {
     const reunioes = data.reunioes || [];
+    const pessoas  = data.pessoas  || [];
     const all  = reunioes.flatMap(r=>(r.encaminhamentos||[]).map(e=>({...e,_rid:r.id,_rdata:r.data})));
     const tot  = all.length, ok=all.filter(e=>e.status==='concluido').length;
     const open = all.filter(e=>e.status!=='concluido'&&e.status!=='cancelado').length;
@@ -786,14 +787,7 @@ const App = {
           </div>`;}).join('') : '<div class="empty" style="padding:16px"><p>Nenhum em aberto.</p></div>'}
         </div>
       </div>
-      ${data.pessoas.filter(p=>p.status==='ativo').length?`<div class="card" style="margin-top:2px">
-        <div class="card-hdr"><span class="card-title">Coletivo ativo</span>
-          <button class="btn btn-o btn-sm" onclick="App.go('pessoas')">Gerenciar</button>
-        </div>
-        <div class="chips">${data.pessoas.filter(p=>p.status==='ativo').map(p=>`
-          <div class="chip"><strong>${esc(p.nome)}</strong>${p.area?`<span>· ${esc(p.area)}</span>`:''}</div>`).join('')}
-        </div>
-      </div>`:''}`;
+      `;
   },
 
   /* ── REUNIÕES LISTA ── */
