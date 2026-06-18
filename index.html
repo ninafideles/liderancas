@@ -575,8 +575,9 @@ const DB = {
     this._fbRef.on('value', (snapshot) => {
       const val = snapshot.val();
       if (!val || this._cache === null) return;
-      if (JSON.stringify(val) === JSON.stringify(this._cache)) return;
-      this._cache = val;
+      const norm = this._norm(val);
+      if (JSON.stringify(norm) === JSON.stringify(this._cache)) return;
+      this._cache = norm;
       try { localStorage.setItem(this.KEY, JSON.stringify(val)); } catch(e) {}
       if (AUTH.check() && !document.getElementById('overlay').classList.contains('open')) {
         App.render();
@@ -1034,7 +1035,7 @@ const App = {
         </select>
         <select class="fc" onchange="App.setFilter('pessoa',this.value)">
           <option value="" ${!fp?'selected':''}>Todas as pessoas</option>
-          ${data.pessoas.map(p=>`<option value="${p.id}" ${fp===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+          ${(data.pessoas||[]).map(p=>`<option value="${p.id}" ${fp===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
         </select>
       </div>
       <div>
