@@ -362,7 +362,7 @@ function fmtBytes(b) {
   if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
   return (b/1048576).toFixed(1) + ' MB';
 }
-function getPessoa(data, id) { return data.pessoas.find(p => p.id === id); }
+function getPessoa(data, id) { return (data.pessoas||[]).find(p => p.id === id); }
 function getNomes(data, ids) {
   if (!ids || !ids.length) return null;
   return ids.map(id => { const p = getPessoa(data, id); return p ? p.nome : '?'; }).join(', ');
@@ -401,9 +401,10 @@ function renderMats(mats, delCb) {
 function matchPessoa(data, name) {
   if (!name) return null;
   const n = name.trim().toLowerCase();
-  return data.pessoas.find(p => p.nome.toLowerCase() === n) ||
-         data.pessoas.find(p => p.nome.toLowerCase().split(' ')[0] === n.split(' ')[0]) ||
-         data.pessoas.find(p => p.nome.toLowerCase().includes(n) || n.includes(p.nome.toLowerCase().split(' ')[0])) ||
+  const ps = data.pessoas||[];
+  return ps.find(p => p.nome.toLowerCase() === n) ||
+         ps.find(p => p.nome.toLowerCase().split(' ')[0] === n.split(' ')[0]) ||
+         ps.find(p => p.nome.toLowerCase().includes(n) || n.includes(p.nome.toLowerCase().split(' ')[0])) ||
          null;
 }
 
@@ -797,7 +798,7 @@ const App = {
 
   /* ── REUNIÕES LISTA ── */
   vReunioes(data) {
-    const sorted = [...data.reunioes].sort((a,b)=>new Date(b.data)-new Date(a.data));
+    const sorted = [...(data.reunioes||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
     return `
       <div class="ph">
         <span class="pt">Reuniões</span>
@@ -964,7 +965,7 @@ const App = {
   /* ── ENCAMINHAMENTOS ── */
   vEncs(data) {
     const fs=this.filters.status, fp=this.filters.pessoa;
-    const allEncs=data.reunioes.flatMap(r=>(r.encaminhamentos||[]).map((e,idx)=>({...e,_rid:r.id,_rdata:r.data,_rtit:r.titulo,_idx:idx})));
+    const allEncs=(data.reunioes||[]).flatMap(r=>(r.encaminhamentos||[]).map((e,idx)=>({...e,_rid:r.id,_rdata:r.data,_rtit:r.titulo,_idx:idx})));
 
     const pendentes=allEncs.filter(e=>e.status==='pendente'||e.status==='em_andamento');
     const atrasados=pendentes.filter(e=>isLate(e.prazo));
@@ -976,7 +977,7 @@ const App = {
     if (fp) filtered=filtered.filter(e=>(e.responsaveis||[]).includes(fp));
     filtered.sort((a,b)=>{if(!a.prazo)return 1;if(!b.prazo)return -1;return new Date(a.prazo)-new Date(b.prazo);});
 
-    const byP=data.pessoas.map(p=>{
+    const byP=(data.pessoas||[]).map(p=>{
       const mine=allEncs.filter(e=>(e.responsaveis||[]).includes(p.id));
       return{...p,tot:mine.length,ok:mine.filter(e=>e.status==='concluido').length,open:mine.filter(e=>e.status==='pendente'||e.status==='em_andamento').length};
     }).filter(p=>p.tot>0);
@@ -1070,10 +1071,10 @@ const App = {
       <div class="ph"><span class="pt">Pessoas</span>
         <button class="btn btn-p" onclick="App.openModal('nova-pessoa')">+ Adicionar</button>
       </div>
-      ${!data.pessoas.length?`<div class="card"><div class="empty"><div class="empty-ico">👥</div>
+      ${!(data.pessoas||[]).length?`<div class="card"><div class="empty"><div class="empty-ico">👥</div>
         <h3>Nenhuma pessoa cadastrada</h3><p>Adicione os integrantes do coletivo.</p></div></div>`
-        :`<div class="card">${data.pessoas.map((p,idx)=>{
-          const encs=data.reunioes.flatMap(r=>r.encaminhamentos||[]).filter(e=>(e.responsaveis||[]).includes(p.id));
+        :`<div class="card">${(data.pessoas||[]).map((p,idx)=>{
+          const encs=(data.reunioes||[]).flatMap(r=>r.encaminhamentos||[]).filter(e=>(e.responsaveis||[]).includes(p.id));
           const ok=encs.filter(e=>e.status==='concluido').length, open=encs.filter(e=>e.status!=='concluido'&&e.status!=='cancelado').length;
           return`<div class="li">
             <div class="avatar">${esc(p.nome||'?').charAt(0).toUpperCase()}</div>
@@ -1166,19 +1167,19 @@ Encaminhamentos
           <div class="fg"><label class="fl">Data</label><input class="fc" type="date" id="m-data" value="${esc(r?.data||new Date().toISOString().slice(0,10))}"></div>
           <div class="fg"><label class="fl">Título</label><input class="fc" type="text" id="m-titulo" placeholder="Ex: Lideranças" value="${esc(r?.titulo||'Lideranças')}"></div>
         </div>
-        ${data.pessoas.filter(p=>p.status==='ativo').length?`<div class="fg"><label class="fl">Participantes</label>
-          <div class="chk-list">${data.pessoas.filter(p=>p.status==='ativo').map(p=>`
+        ${(data.pessoas||[]).filter(p=>p.status==='ativo').length?`<div class="fg"><label class="fl">Participantes</label>
+          <div class="chk-list">${(data.pessoas||[]).filter(p=>p.status==='ativo').map(p=>`
             <label class="chk-item"><input type="checkbox" value="${p.id}" ${parts.includes(p.id)?'checked':''} class="part-chk">
               <span>${esc(p.nome)}${p.area?` <span style="color:var(--muted)">· ${esc(p.area)}</span>`:''}</span></label>`).join('')}
           </div></div>`:''}
         <div class="frow">
           <div class="fg"><label class="fl">Relatoria (fez)</label><select class="fc" id="m-rel">
             <option value="">—</option>
-            ${data.pessoas.map(p=>`<option value="${p.id}" ${r?.relatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            ${(data.pessoas||[]).map(p=>`<option value="${p.id}" ${r?.relatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
           </select></div>
           <div class="fg"><label class="fl">Próxima Relatoria</label><select class="fc" id="m-prox">
             <option value="">—</option>
-            ${data.pessoas.map(p=>`<option value="${p.id}" ${r?.proximaRelatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            ${(data.pessoas||[]).map(p=>`<option value="${p.id}" ${r?.proximaRelatoria===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
           </select></div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
@@ -1198,7 +1199,7 @@ Encaminhamentos
         <div class="frow">
           <div class="fg"><label class="fl">Pessoa</label><select class="fc" id="m-pessoa" onchange="App.preencheArea(this)">
             <option value="">Selecione...</option>
-            ${data.pessoas.map(p=>`<option value="${p.id}" data-area="${esc(p.area||'')}" ${inf?.pessoaId===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
+            ${(data.pessoas||[]).map(p=>`<option value="${p.id}" data-area="${esc(p.area||'')}" ${inf?.pessoaId===p.id?'selected':''}>${esc(p.nome)}</option>`).join('')}
           </select></div>
           <div class="fg"><label class="fl">Área</label><input class="fc" type="text" id="m-area" placeholder="Ex: Redação" value="${esc(inf?.area||'')}"></div>
         </div>
@@ -1239,7 +1240,7 @@ Encaminhamentos
         <div class="fg"><label class="fl">Título</label><input class="fc" type="text" id="m-titulo-enc" placeholder="Resumo curto — ex: Carta sindicato" value="${esc(e?.titulo||'')}"></div>
         <div class="fg"><label class="fl">Descrição / detalhes</label><textarea class="fc" id="m-desc" rows="3" placeholder="O que foi decidido...">${esc(e?.descricao||'')}</textarea></div>
         <div class="fg"><label class="fl">Responsáveis</label>
-          <div class="chk-list">${data.pessoas.map(p=>`
+          <div class="chk-list">${(data.pessoas||[]).map(p=>`
             <label class="chk-item"><input type="checkbox" value="${p.id}" ${(e?.responsaveis||[]).includes(p.id)?'checked':''} class="resp-chk">
               <span>${esc(p.nome)}${p.area?` <span style="color:var(--muted)">· ${esc(p.area)}</span>`:''}</span></label>`).join('')}
           </div>
